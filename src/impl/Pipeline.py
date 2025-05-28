@@ -1,8 +1,11 @@
 from impl.NN import NeuralNetwork
 from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg') 
 import numpy as np
 import os
+import json
 
 class Pipeline:
     
@@ -13,6 +16,9 @@ class Pipeline:
         self.output_dir = output_dir
         
     def run(self,epochs=100,verbose=False):
+        if os.path.exists(self.output_dir):
+            print("Output directory already exists. If you want to overwrite it, delete it first.")
+            return
         self.model.fit(self.X, self.y, epochs=epochs, verbose=verbose)
         y_pred = self.model.predict(self.X)
         self.evaluate(y_pred)
@@ -30,7 +36,14 @@ class Pipeline:
             
         cm = confusion_matrix(y_true, y_pred)
         cm_path = self.output_dir + 'confusion_matrix.png'
-        plt.imshow(cm)
+        # make it so the plot doesnt appear on screen
+        plt.figure(figsize=(10, 10))
+        plt.title('Confusion Matrix')
+        plt.xlabel('Predicted')
+        plt.ylabel('True')
+        plt.tight_layout()
+        plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+        plt.colorbar()
         plt.savefig(cm_path)
         plt.close()
         
@@ -60,8 +73,9 @@ class Pipeline:
         plt.savefig(self.output_dir + 'cost_function.png')
         plt.close()
         
-        history_path = self.output_dir + 'history.npy'
-        np.save(history_path, history)
+        history_path = self.output_dir + 'history.json'
+        with open(history_path, 'w') as f:
+            json.dump(history, f)
         
         for i in range(len(self.model.weights)):
             weights_path = self.output_dir + f'weights_{i}.npy'
