@@ -74,12 +74,12 @@ class BinaryCrossEntropy:
             J += reg_term
         return J
     
-    def gradient(self,A_: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> list[np.ndarray]:
+    def gradient(self,A_: list[np.ndarray], Z_: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> list[np.ndarray]:
         m = y.shape[0]
         
         deltas = [A_[-1] - y]
         for i in range(len(weigths) - 1, 0, -1):
-            A = A_[i]
+            A = Z_[i]
             delta = deltas[-1] @ weigths[i] * sigmoid_gradient(A)
             delta = delta[:, 1:]
             deltas.append(delta)

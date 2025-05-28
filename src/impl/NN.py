@@ -28,13 +28,15 @@ class NeuralNetwork:
     def forward_propagation(self, X):
         X_p_bias = np.hstack((np.ones((X.shape[0], 1)), X))
         A_ = [X_p_bias]
+        Z_ = [X_p_bias]
         for i in range(len(self.layers)+1):
             Z = A_[-1] @ self.weights[i].T
-            A = sigmoid(Z)
             if i < len(self.layers):
-                A = np.hstack((np.ones((A.shape[0], 1)), A))
+                Z = np.hstack((np.ones((Z.shape[0], 1)), Z))
+            A = sigmoid(Z)
             A_.append(A)
-        return A_
+            Z_.append(Z)
+        return A_, Z_
 
     def predict(self, X):
         A = X
@@ -48,7 +50,7 @@ class NeuralNetwork:
         self.optimizer.verbose = verbose
         self.optimizer.reset()
         for _ in range(epochs):
-            A_ = self.forward_propagation(X)
+            A_ , Z_ = self.forward_propagation(X)
             cost = self.cost_function.cost(A_, self.weights,y)
-            grads = self.cost_function.gradient(A_, self.weights, y)
+            grads = self.cost_function.gradient(A_,Z_, self.weights, y)
             self.optimizer.step(self.weights, grads, cost)
