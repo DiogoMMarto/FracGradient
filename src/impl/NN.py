@@ -26,21 +26,20 @@ class NeuralNetwork:
         return weights
     
     def forward_propagation(self, X):
-        X_p_bias = np.hstack((X, np.ones((X.shape[0], 1))))
+        X_p_bias = np.hstack((np.ones((X.shape[0], 1)), X))
         A_ = [X_p_bias]
-        A = X_p_bias
         for i in range(len(self.layers)+1):
-            Z = A @ self.weights[i].T
+            Z = A_[-1] @ self.weights[i].T
             A = sigmoid(Z)
             if i < len(self.layers):
-                A = np.hstack((A, np.ones((A.shape[0], 1))))
+                A = np.hstack((np.ones((A.shape[0], 1)), A))
             A_.append(A)
         return A_
 
     def predict(self, X):
         A = X
         for i in range(len(self.layers)+1):
-            A = np.hstack((A, np.ones((A.shape[0], 1))))
+            A = np.hstack((np.ones((A.shape[0], 1)), A))
             Z = A @ self.weights[i].T
             A = sigmoid(Z)
         return A

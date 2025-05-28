@@ -60,6 +60,12 @@ class Pipeline:
         plt.savefig(self.output_dir + 'cost_function.png')
         plt.close()
         
+        history_path = self.output_dir + 'history.npy'
+        np.save(history_path, history)
+        
         for i in range(len(self.model.weights)):
             weights_path = self.output_dir + f'weights_{i}.npy'
             np.save(weights_path, self.model.weights[i])
+        
+        print(f"Saved results to {self.output_dir}")
+    

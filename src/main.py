@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , FOMA
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 from scipy.io import loadmat
 import numpy as np
@@ -29,9 +29,9 @@ def main():
             BinaryCrossEntropy(
                 regularization=L2Regularization(0.2)
             ), 
-            ClassicOptimizer(learning_rate=1)
+            FOMA(learning_rate=1,beta=1)
         ),
-        "output/classical/"
+        "output/foma/"
     )
     p.run(epochs=500, verbose=True)
     

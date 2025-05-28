@@ -20,8 +20,8 @@ class L2Regularization:
         ----------
         weights : list of numpy arrays
             The weights of the neural network.
-        lambda_ : float, optional
-            The regularization parameter (default is 0.01).
+        num_examples : int
+            The number of examples in the training set.
 
         Returns
         -------
@@ -62,26 +62,7 @@ class BinaryCrossEntropy:
         self.activation_gradient = activation_gradient
         self.regularization = regularization
     
-    def cost(self,A: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> float:
-        """
-        Compute the cost of the neural network with the given weights and data.
-
-        Parameters
-        ----------
-        weigths : list of numpy arrays
-            The weights of the neural network. Each element in the list corresponds to the weights
-            of a layer, with shape (n_units_next_layer, n_units_current_layer + 1) to account for bias.
-        X : numpy array
-            The input data with shape (m, n), where m is the number of examples and n is the number of features.
-        y : numpy array
-            The labels of the data with shape (m, k), where m is the number of examples and k is the number
-            of output classes (for binary classification, k = 1).
-
-        Returns
-        -------
-        float
-            The cost of the neural network.
-        """            
+    def cost(self,A: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> float:        
         num_examples , num_labels = y.shape
         J = 0
         P = A[-1]
@@ -94,26 +75,6 @@ class BinaryCrossEntropy:
         return J
     
     def gradient(self,A_: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> list[np.ndarray]:
-        """
-        Compute the gradient of the cost of the neural network with the given weights and data.
-
-        Parameters
-        ----------
-        weigths : list of numpy arrays
-            The weights of the neural network. Each element in the list corresponds to the weights
-            of a layer, with shape (n_units_next_layer, n_units_current_layer + 1) to account for bias.
-        X : numpy array
-            The input data with shape (m, n), where m is the number of examples and n is the number of features.
-        y : numpy array
-            The labels of the data with shape (m, k), where m is the number of examples and k is the number
-            of output classes (for binary classification, k = 1).
-
-        Returns
-        -------
-        list of numpy arrays
-            The gradient of the cost of the neural network with respect to the weights. Each element in the list
-            corresponds to the gradient for a layer, with the same shape as the respective weight matrix.
-        """
         m = y.shape[0]
         
         deltas = [A_[-1] - y]

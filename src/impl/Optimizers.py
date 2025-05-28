@@ -222,7 +222,7 @@ class FracOptimizer(ClassicOptimizer):
 
     def step(self, params, grads, cost):
         if self.previous_grads is None:
-            super().step(params, grads, cost)
+            new_grads = grads
         else:
             new_grads = []
             for i in range(len(params)):
@@ -230,11 +230,11 @@ class FracOptimizer(ClassicOptimizer):
                 alpha = self.alpha_func(norm_grad, self.beta)
                 new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
                 new_grads.append(new_grad)
-            super().step(params, new_grads, cost)
             
-        self.previous_grads = grads
+        self.previous_grads = [grad.copy() for grad in grads]
         self.previous_cost = cost
-        self.previous_weigths = params
+        self.previous_weigths = [weigths.copy() for weigths in params]
+        super().step(params, new_grads, cost)
 
 
     def reset(self):
@@ -243,10 +243,19 @@ class FracOptimizer(ClassicOptimizer):
         self.previous_cost = None
         self.previous_weigths = None
         
-class FracOptimizer2(FracOptimizer):
+class FracOptimizer2(ClassicOptimizer):
+
+    def __init__(self, learning_rate=0.01, alpha_function = alpha_function, beta=0.9, verbose=False):
+        super().__init__(learning_rate, verbose)
+        self.alpha_func = alpha_function
+        self.beta = 0.9
+        self.previous_weigths = None
+        self.previous_grads = None
+        self.previous_cost = None
+    
     def step(self, params, grads, cost):
         if self.previous_grads is None:
-            super().step(params, grads, cost)
+            new_grads = grads
         else:
             norm_grad = 0
             for i in range(len(params)):
@@ -257,15 +266,21 @@ class FracOptimizer2(FracOptimizer):
             for i in range(len(params)):
                 new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
                 new_grads.append(new_grad)
-            super().step(params, new_grads, cost)
             
-        self.previous_grads = grads
+        self.previous_grads = [ grad.copy() for grad in grads ]
         self.previous_cost = cost
-        self.previous_weigths = params
+        self.previous_weigths = [ weigths.copy() for weigths in params ]
+        super().step(params, new_grads, cost)
+
+    def reset(self):
+        super().reset()
+        self.previous_grads = None
+        self.previous_cost = None
+        self.previous_weigths = None
         
 class FOMA(FracOptimizer):
     def __init__(self, learning_rate=0.001, alpha_func=alpha_function, beta=0.9, momentum=0.9, increase_rate=1.1, decay_rate=0.6, verbose=False):
-        super().__init__(self, learning_rate, alpha_func, beta, verbose)
+        super().__init__(learning_rate, alpha_func, beta, verbose)
         self.initial_learning_rate = learning_rate
         self.momentum = momentum
         self.increase_rate = increase_rate
