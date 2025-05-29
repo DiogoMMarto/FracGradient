@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 from scipy.io import loadmat
 import numpy as np
@@ -38,10 +38,23 @@ def main():
     D = [
         ( ClassicOptimizer, {"learning_rate":1}, "output/classical/"),
         ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, "output/adaptive/"),
-        ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, "output/momentum/"),
-        ( FracOptimizer, {"learning_rate":1}, "output/frac/"),
-        ( FracOptimizer2, {"learning_rate":1}, "output/frac2/"),
-        ( AdamOptimizer, {"learning_rate":1}, "output/adam/")
+        # ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, "output/momentum/"),
+        # ( FracOptimizer, {"learning_rate":1}, "output/frac/"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":0.1}, "output/fracB01/"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":0.01}, "output/fracB001/"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":0.001}, "output/fracB0001/"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":10}, "output/fracB10/"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":0.5}, "output/fracB05/"),
+        ( FracAdap, {"learning_rate":1,"beta":0.5}, "output/fracAdapB05/"),
+        # ( Frac3Optimizer, {"learning_rate":1,"beta":0.5}, "output/frac3B05/"),
+        # ( Frac3Optimizer, {"learning_rate":1,"beta":0.05}, "output/frac3B005/"),
+        # ( Frac3Optimizer, {"learning_rate":1,"beta":0.005}, "output/frac3B0005/"),
+        # ( Frac3Optimizer, {"learning_rate":1,"beta":5}, "output/frac3B5/"),
+        # ( FracOptimizer2, {"learning_rate":1}, "output/frac2/"),
+        ( FracOptimizer2, {"learning_rate":1,"beta":0}, "output/frac2B0/"),
+        ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, "output/frac2B01/"),
+        ( FracOptimizer2, {"learning_rate":1,"beta":5}, "output/frac2B5/"),
+        # ( AdamOptimizer, {"learning_rate":1}, "output/adam/")
     ]
     
     def run_pipeline(Optimizer,params,output):
@@ -60,11 +73,13 @@ def main():
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
     y_heigth = 100
+    S = 20
     for Optimizer , _ , output in D:
         history = json.load(open(output + "history.json"))
-        plt.plot(history["cost"], label=Optimizer.__name__)
-        if history["cost"][10] < y_heigth:
-            y_heigth = history["cost"][10]
+        name = output.split("/")[-2]
+        plt.plot(history["cost"], label=name)
+        if history["cost"][S] < y_heigth:
+            y_heigth = history["cost"][S]
     plt.ylim(ymin=0, ymax=y_heigth)
     plt.legend()
     plt.savefig("output/history.png")
