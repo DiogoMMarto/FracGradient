@@ -1,6 +1,7 @@
 from time import time
 import numpy as np
 from impl.CostFunctions import frac_gradient_from_gradient
+from scipy.optimize import minimize_scalar
 
 class ClassicOptimizer:
     def __init__(self, learning_rate=0.01, verbose=False):
@@ -334,3 +335,53 @@ class FracAdap(FracOptimizer):
         else:
             self.learning_rate *= self.decay_rate
         return self.learning_rate  
+    
+class FracTrue(ClassicOptimizer):
+    
+    def __init__(self, learning_rate=0.01, alpha_function = alpha_function, beta=0.9, verbose=False):
+        super().__init__(learning_rate, verbose)
+        self.alpha_func = alpha_function
+        self.beta = 0.9
+        self.previous_weigths = None
+        self.previous_grads = None
+        self.previous_cost = None
+        self.parent = None
+        
+    def cost_function_alpha(self, alpha, params,grads):
+        new_weights = []
+        for i in range(len(params)):
+            new_weights.append(params[i] - alpha * grads[i])
+        A_, _ = self.parent.forward_propagation_weigths(new_weights)
+        cost = self.parent.cost_function.cost(A_, new_weights, self.parent.y)
+        return cost
+            
+    def step(self, params, grads, cost):
+        if self.previous_grads is None:
+            new_grads = grads
+        else:
+            norm_grad = 0
+            for i in range(len(params)):
+                norm_grad += np.linalg.norm(self.previous_grads[i]) ** 2
+            norm_grad = np.sqrt(norm_grad)
+            alpha = self.alpha_func(norm_grad, self.beta)
+            new_grads = []
+            for i in range(len(params)):
+                new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
+                new_grads.append(new_grad)
+            
+        self.learning_rate = minimize_scalar(
+            self.cost_function_alpha, 
+            args=(params, new_grads), 
+            bounds=(0, 1), 
+            method='bounded'
+        ).x
+        self.previous_grads = [ grad.copy() for grad in grads ]
+        self.previous_cost = cost
+        self.previous_weigths = [ weigths.copy() for weigths in params ]
+        super().step(params, new_grads, cost)
+        
+    def reset(self):
+        super().reset()
+        self.previous_grads = None
+        self.previous_cost = None
+        self.previous_weigths = None

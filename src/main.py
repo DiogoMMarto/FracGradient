@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 from scipy.io import loadmat
 import numpy as np
@@ -54,12 +54,13 @@ def main():
         ( FracOptimizer2, {"learning_rate":1,"beta":0}, "output/frac2B0/"),
         ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, "output/frac2B01/"),
         ( FracOptimizer2, {"learning_rate":1,"beta":5}, "output/frac2B5/"),
+        ( FracTrue, {"beta":0.5,"verbose":True}, "output/fracTrue/"),
         # ( AdamOptimizer, {"learning_rate":1}, "output/adam/")
     ]
     
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
-        p.run(epochs=1000)
+        p.run(epochs=1000,verbose=True)
     
     with ThreadPoolExecutor(max_workers=8) as executor:
         futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output in D]
@@ -83,6 +84,24 @@ def main():
     plt.ylim(ymin=0, ymax=y_heigth)
     plt.legend()
     plt.savefig("output/history.png")
+    
+    # similar plot but include x = time and y = cost
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Time")
+    plt.ylabel("$J(\\Theta)$")
+    plt.title("Cost function using Gradient Descent")
+    plt.tight_layout()
+    y_heigth = 0
+    S = 20
+    for Optimizer , _ , output in D:
+        history = json.load(open(output + "history.json"))
+        name = output.split("/")[-2]
+        plt.plot(history["time"], history["cost"], label=name)
+        if history["cost"][S] > y_heigth:
+            y_heigth = history["cost"][S]
+    plt.ylim(ymin=0, ymax=y_heigth)
+    plt.legend()
+    plt.savefig("output/history_time.png")
     
 if __name__ == "__main__":
     main()    

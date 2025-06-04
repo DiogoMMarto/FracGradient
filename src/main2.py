@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 from scipy.io import loadmat
 import numpy as np
@@ -75,7 +75,8 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
-        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/")
+        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
+        ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
     ]
     
     def run_pipeline(Optimizer,params,output):
@@ -104,6 +105,24 @@ def main():
     plt.ylim(ymin=0.5, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history.png")
+    
+    # similar plot but include x = time and y = cost
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Time")
+    plt.ylabel("$J(\\Theta)$")
+    plt.title("Cost function using Gradient Descent")
+    plt.tight_layout()
+    y_heigth = 0
+    S = 20
+    for Optimizer , _ , output in D:
+        history = json.load(open(output + "history.json"))
+        name = output.split("/")[-2]
+        plt.plot(history["time"], history["cost"], label=name)
+        if history["cost"][S] > y_heigth:
+            y_heigth = history["cost"][S]
+    plt.ylim(ymin=0.5, ymax=y_heigth)
+    plt.legend()
+    plt.savefig(BASE_DIR + "history_time.png")
     
 if __name__ == "__main__":
     main()    

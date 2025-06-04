@@ -15,6 +15,7 @@ class NeuralNetwork:
         self.cost_function = cost_function
         self.optimizer = optimizer
         self.weights = self.initialize_weights(layers)
+        self.optimizer.parent = self
     
     def initialize_weights(self, layers):
         weights = []
@@ -37,6 +38,19 @@ class NeuralNetwork:
             A_.append(A)
             Z_.append(Z)
         return A_, Z_
+    
+    def forward_propagation_weigths(self, weights):
+        X_p_bias = np.hstack((np.ones((self.X.shape[0], 1)), self.X))
+        A_ = [X_p_bias]
+        Z_ = [X_p_bias]
+        for i in range(len(self.layers)+1):
+            Z = A_[-1] @ weights[i].T
+            if i < len(self.layers):
+                Z = np.hstack((np.ones((Z.shape[0], 1)), Z))
+            A = sigmoid(Z)
+            A_.append(A)
+            Z_.append(Z)
+        return A_, Z_
 
     def predict(self, X):
         A = X
@@ -47,6 +61,8 @@ class NeuralNetwork:
         return A
     
     def fit(self, X, y, epochs=100, verbose=False):
+        self.X = X
+        self.y = y
         self.optimizer.verbose = verbose
         self.optimizer.reset()
         for _ in range(epochs):
