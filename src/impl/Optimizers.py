@@ -4,19 +4,45 @@ from impl.CostFunctions import frac_gradient_from_gradient
 from scipy.optimize import minimize_scalar
 
 class ClassicOptimizer:
-    def __init__(self, learning_rate=0.01, verbose=False):
+    """
+    A base class for classic optimization algorithms used in training neural networks.
+    This class provides a framework for implementing various optimization techniques such as gradient descent, momentum, and adaptive learning rates.
+    It tracks the cost and time history of the optimization process and provides methods for stepping through the optimization process, resetting the optimizer, and retrieving the history.
+    It can be extended to implement specific optimization algorithms.
+    
+    Parameters
+    ----------
+    learning_rate : float, optional
+        The learning rate for the optimizer. Default is 0.01.
+    verbose : bool, optional
+        If True, enables verbose output during the optimization process. Default is False.
+        
+    Methods
+    -------
+    step(params, grads, cost):
+        Performs a single optimization step using the provided parameters, gradients, and cost.
+    _end_step(cost):
+        Finalizes the step by updating the cost and time history, and increments the iteration counter.
+    _print_step_info(cost):
+        Prints the step information including cost and time if verbose is enabled.
+    reset():
+        Resets the optimizer's history and iteration counter.
+    get_history():
+        Returns the history of costs and times recorded during the optimization process.
+    
+    Attributes:
+        learning_rate (float): The learning rate for the optimizer.
+        history (dict): A dictionary to store the cost and time history.
+        i (int): Counter for iterations.
+        base_time (float or None): Base time for tracking elapsed time.
+    """
+    def __init__(self, learning_rate: float=0.01, verbose: bool=False):
         """
         Initializes the ClassicOptimizer with a specified learning rate and verbosity.
 
         Args:
             learning_rate (float): The learning rate for the optimizer. Default is 0.01.
             verbose (bool): If True, enables verbose output. Default is False.
-
-        Attributes:
-            learning_rate (float): Stores the learning rate.
-            history (dict): A dictionary to store the cost and time history.
-            i (int): Counter for iterations.
-            base_time (float or None): Base time for tracking elapsed time.
         """
         self.learning_rate = learning_rate
         self.history = {}
@@ -25,22 +51,24 @@ class ClassicOptimizer:
         self.i = 0
         self.base_time = None
         self.verbose = verbose
+        self.parent = None  # Placeholder for parent object, if needed later
 
-    def step(self, params, grads, cost):
+    def step(self, params: list[np.ndarray], grads:list[np.ndarray], cost: float):
+        
         for i in range(len(params)):
             params[i] -= self.learning_rate * grads[i]
         self._end_step(cost)
         
-    def _end_step(self,cost):
-        if self.i == 0:
-            self.base_time = time()
+    def _end_step(self,cost:float):
         self.history['cost'].append(cost)
+        if self.base_time is None:
+            self.base_time = time()
         self.history['time'].append(time() - self.base_time)
         self.i += 1
         if self.verbose:
             self._print_step_info(cost)
     
-    def _print_step_info(self, cost):
+    def _print_step_info(self, cost:float):
         print(f"Step {self.i}: Cost = {cost:.4f}, Time = {self.history['time'][-1]:.4f} seconds")
         
     def reset(self):
@@ -49,10 +77,38 @@ class ClassicOptimizer:
         self.history['time'] = []
         self.i = 0
         
-    def get_history(self):
+    def get_history(self) -> dict:
         return self.history
     
 class MomentumOptimizer(ClassicOptimizer):
+    """
+    A class implementing the Momentum optimization algorithm, which accelerates gradient descent by accumulating a velocity vector in the direction of the gradients.
+    This class extends the ClassicOptimizer and provides methods to perform optimization steps with momentum, reset the optimizer, and retrieve the optimization history.
+
+    Parameters
+    ----------
+    learning_rate : float, optional
+        The initial learning rate for the optimizer. Default is 0.01.
+    momentum : float, optional
+        The momentum factor, which determines the contribution of the previous velocity to the current update. Default is 0.9.
+    verbose : bool, optional
+        If True, enables verbose output during the optimization process. Default is False.
+    
+    Methods
+    -------
+    step(params, grads, cost):
+        Performs a single optimization step using the provided parameters, gradients, and cost, applying momentum to the updates.
+    reset():
+        Resets the optimizer's velocity and history.
+    get_history():
+        Returns the history of costs and times recorded during the optimization process.
+        
+    Attributes:
+        momentum (float): The momentum factor for the optimizer.
+        velocity (list or None): A list to store the velocity for each parameter, initialized to None.
+        initial_learning_rate (float): The initial learning rate for the optimizer.
+    """
+
     def __init__(self, learning_rate=0.01, momentum=0.9, verbose=False):
         """
         Initialize the MomentumOptimizer with specified learning rate and momentum.
@@ -86,6 +142,38 @@ class MomentumOptimizer(ClassicOptimizer):
         self.velocity = None
         
 class AdaptiveLearningRateOptimizer(ClassicOptimizer):
+    """
+    A class implementing an adaptive learning rate optimizer that adjusts the learning rate based on the cost function.
+    This class extends the ClassicOptimizer and provides methods to perform optimization steps with adaptive learning rates, reset the optimizer, and retrieve the optimization history.
+    
+    Parameters
+    ----------
+    initial_learning_rate : float, optional
+        The initial learning rate for the optimizer. Default is 0.01.
+    increase_rate : float, optional
+        The rate to increase the learning rate when the cost decreases. Default is 1.1.
+    decay_rate : float, optional
+        The rate to decay the learning rate when the cost increases. Default is 0.6.
+    verbose : bool, optional
+        If True, enables verbose output during the optimization process. Default is False.
+    
+    Methods
+    -------
+    step(params, grads, cost):
+        Performs a single optimization step using the provided parameters, gradients, and cost, adjusting the learning rate based on the cost.
+    compute_learning_rate(cost):
+        Computes the new learning rate based on the current cost and the history of costs.
+    reset():
+        Resets the optimizer's history and learning rate to the initial value.
+    get_history():
+        Returns the history of costs and times recorded during the optimization process.
+        
+    Attributes:
+        increase_rate (float): The rate to increase the learning rate when the cost decreases.
+        decay_rate (float): The rate to decay the learning rate when the cost increases.
+        initial_learning_rate (float): The initial learning rate for the optimizer.
+        
+    """
     def __init__(self, initial_learning_rate=0.01, increase_rate=1.1, decay_rate=0.6, verbose=False):
         """
         Initialize the AdaptiveLearningRateOptimizer with specified initial learning rate, increase rate and decay rate.
@@ -95,11 +183,6 @@ class AdaptiveLearningRateOptimizer(ClassicOptimizer):
             increase_rate (float): The rate to increase the learning rate when the cost decreases. Default is 1.1.
             decay_rate (float): The rate to decay the learning rate when the cost increases. Default is 0.6.
             verbose (bool): If True, enables verbose output. Default is False.
-
-        Attributes:
-            increase_rate (float): Stores the increase rate.
-            decay_rate (float): Stores the decay rate.
-            initial_learning_rate (float): Stores the initial learning rate.
         """
         super().__init__(initial_learning_rate, verbose)
         self.increase_rate = increase_rate
@@ -177,7 +260,7 @@ class AdamOptimizer(ClassicOptimizer):
         self.initial_learning_rate = learning_rate
 
     def step(self, params, grads, cost):
-        if self.m is None:
+        if self.m is None or self.v is None:
             self.m = [np.zeros_like(param) for param in params]
             self.v = [np.zeros_like(param) for param in params]
         
@@ -222,7 +305,7 @@ class FracOptimizer(ClassicOptimizer):
         self.previous_cost = None   
 
     def step(self, params, grads, cost):
-        if self.previous_grads is None:
+        if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
             new_grads = grads
         else:
             new_grads = []
@@ -231,7 +314,7 @@ class FracOptimizer(ClassicOptimizer):
                 alpha = self.alpha_func(norm_grad, self.beta)
                 new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
                 new_grads.append(new_grad)
-            
+
         self.previous_grads = [grad.copy() for grad in grads]
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
@@ -255,7 +338,7 @@ class FracOptimizer2(ClassicOptimizer):
         self.previous_cost = None
     
     def step(self, params, grads, cost):
-        if self.previous_grads is None:
+        if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
             new_grads = grads
         else:
             new_grads = []
@@ -287,7 +370,7 @@ class Frac3Optimizer(ClassicOptimizer):
         self.previous_cost = None
         
     def step(self, params, grads, cost):
-        if self.previous_grads is None:
+        if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
             new_grads = grads
         else:
             norm_grad = 0
@@ -351,12 +434,14 @@ class FracTrue(ClassicOptimizer):
         new_weights = []
         for i in range(len(params)):
             new_weights.append(params[i] - alpha * grads[i])
-        A_, _ = self.parent.forward_propagation_weigths(new_weights)
+        if self.parent is None:
+            raise ValueError("Parent NeuralNetwork is not set. Please set the parent before calling this method.")
+        A_, _ = self.parent.forward_propagation(new_weights, self.parent.X) # type: ignore
         cost = self.parent.cost_function.cost(A_, new_weights, self.parent.y)
         return cost
             
     def step(self, params, grads, cost):
-        if self.previous_grads is None:
+        if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
             new_grads = grads
         else:
             norm_grad = 0
