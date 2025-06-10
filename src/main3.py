@@ -11,7 +11,7 @@ import h5py
 from numpy import ndarray
 
 DATASET_PATH = "FracGradient/datasets/Happy_datasets/datasets/"
-BASE_DIR = "FracGradient/results/output_HappyFace/"
+BASE_DIR = "FracGradient/results/output_HappyFace_2/"
 NUM_EPOCHS = 3000
 VERBOSE = True
 
@@ -70,11 +70,11 @@ def main():
         X, 
         y, 
         NeuralNetwork(
-            [25], 
+            [64], 
             X.shape[1], 
             y.shape[1], 
             BinaryCrossEntropy(
-                regularization=L2Regularization(0.2)
+                regularization=L2Regularization(0.1)
             ), 
             Optimizer(**params)
         ),
@@ -84,7 +84,7 @@ def main():
     )
     
     D = [
-        ( ClassicOptimizer, {"learning_rate":1}, BASE_DIR + "classical/" , "Gradient Descent"),
+        ( ClassicOptimizer, {"learning_rate":0.1}, BASE_DIR + "classical/" , "Gradient Descent"),
         ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, BASE_DIR + "adaptive/", "Adaptive Learning Rate"),
         # ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, BASE_DIR + "momentum/"),
         # ( FracOptimizer, {"learning_rate":1}, BASE_DIR + "frac/"),
@@ -99,11 +99,11 @@ def main():
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac3B01/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.005}, BASE_DIR + "frac3B0005/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":5}, BASE_DIR + "frac3B5/"),
-        ( Frac3Optimizer, {"learning_rate":1,"beta":50}, BASE_DIR + "frac3B50/", "Fractional Gradient Descent V3"),
+        ( Frac3Optimizer, {"learning_rate":0.5,"beta":50}, BASE_DIR + "frac3B50/", "Fractional Gradient Descent V3"),
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/"),
-        # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
+        ( FracOptimizer, {"learning_rate":0.1,"beta":5}, BASE_DIR + "fracB5/" , "Fractional Gradient Descent V1"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
     ]
@@ -112,7 +112,7 @@ def main():
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
    
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ThreadPoolExecutor() as executor:
         futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
         for future in futures:
             future.result()
@@ -124,7 +124,7 @@ def main():
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
     y_heigth = 0
-    S = 20
+    S = 2
     for Optimizer , _ ,  output , name in D:
         history = json.load(open(output + "history.json"))
         # name = output.split("/")[-2]
@@ -141,8 +141,8 @@ def main():
     plt.ylabel("$J(\\Theta)$")
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
-    y_heigth = 0
-    S = 20
+    y_heigth = 100
+    S = 2
     for Optimizer , _ , output , name in D:
         history = json.load(open(output + "history.json"))
         # name = output.split("/")[-2]

@@ -10,8 +10,8 @@ import json
 from sklearn.model_selection import train_test_split
 
 DATASET_PATH = "FracGradient/datasets/ex3data1.mat"
-BASE_DIR = "FracGradient/results/output_MNIST/"
-NUM_EPOCHS = 3000
+BASE_DIR = "FracGradient/results/output_MNIST_2/"
+NUM_EPOCHS = 5000
 VERBOSE = True
 
 def one_hot(y):
@@ -32,11 +32,11 @@ def main():
         X, 
         y, 
         NeuralNetwork(
-            [25], 
+            [6], 
             400, 
             10, 
             BinaryCrossEntropy(
-                regularization=L2Regularization(0.2)
+                regularization=L2Regularization(0.1)
             ), 
             Optimizer(**params)
         ),
