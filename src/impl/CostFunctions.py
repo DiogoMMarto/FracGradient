@@ -163,8 +163,8 @@ class BinaryCrossEntropy:
         
         deltas = [A_[-1] - y]
         for i in range(len(weigths) - 1, 0, -1):
-            A = Z_[i]
-            delta = deltas[-1] @ weigths[i] * sigmoid_gradient(A)
+            Z = Z_[i]
+            delta = deltas[-1] @ weigths[i] * sigmoid_gradient(Z)
             delta = delta[:, 1:]
             deltas.append(delta)
 
