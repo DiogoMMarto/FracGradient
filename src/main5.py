@@ -131,7 +131,7 @@ def main():
         plt.plot(history["cost"], label=name)
         if history["cost"][S] > y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=1.375, ymax=y_heigth)
+    plt.ylim(ymin=0.8, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history.png")
     
@@ -149,7 +149,7 @@ def main():
         plt.plot(history["time"], history["cost"], label=name)
         if history["cost"][S] > y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=1.375, ymax=y_heigth)
+    plt.ylim(ymin=0.8, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
     
