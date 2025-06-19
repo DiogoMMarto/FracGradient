@@ -1,7 +1,7 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer
-from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
+from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
@@ -10,8 +10,8 @@ from pathlib import Path
 import h5py
 from numpy import ndarray
 
-DATASET_PATH = "FracGradient/datasets/Happy_datasets/datasets/"
-BASE_DIR = "FracGradient/results/output_HappyFace_3/"
+DATASET_PATH = "datasets/Happy_datasets/datasets/"
+BASE_DIR = "results/output_HappyFace_3/"
 NUM_EPOCHS = 1000
 VERBOSE = True
 
@@ -74,7 +74,12 @@ def main():
             X.shape[1], 
             y.shape[1], 
             BinaryCrossEntropy(
-                regularization=L2Regularization(0.1)
+                regularization=L2Regularization(0.1),
+                activation_function_names=[
+                    "sigmoid",
+                    "sigmoid",
+                    "sigmoid"
+                ]
             ), 
             Optimizer(**params)
         ),
