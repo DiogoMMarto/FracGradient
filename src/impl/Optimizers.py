@@ -372,7 +372,7 @@ class FracTrue(ClassicOptimizer):
         self.learning_rate = minimize_scalar(
             self.cost_function_alpha, 
             args=(params, new_grads), 
-            bounds=(0, 1), 
+            bounds=(0, 10), 
             method='bounded'
         ).x
         self.previous_grads = [ grad.copy() for grad in grads ]
