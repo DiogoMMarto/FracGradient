@@ -1,3 +1,4 @@
+from enum import Enum
 import numpy as np
 from scipy.special import gamma
 
@@ -33,6 +34,140 @@ def sigmoid_gradient(z: np.ndarray) -> np.ndarray:
     """
     sig = sigmoid(z)
     return sig * (1 - sig)
+
+def relu(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the ReLU activation function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the ReLU function.
+
+    Returns
+    -------
+    numpy array
+        The output of the ReLU function.
+    """
+    return np.maximum(0, z)
+
+def relu_gradient(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the gradient of the ReLU function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the ReLU function.
+
+    Returns
+    -------
+    numpy array
+        The gradient of the ReLU function.
+    """
+    return np.where(z > 0, 1, 0)
+
+def tanh(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the hyperbolic tangent activation function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the tanh function.
+
+    Returns
+    -------
+    numpy array
+        The output of the tanh function.
+    """
+    return np.tanh(z)
+
+def tanh_gradient(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the gradient of the hyperbolic tangent function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the tanh function.
+
+    Returns
+    -------
+    numpy array
+        The gradient of the tanh function.
+    """
+    return 1 - np.tanh(z) ** 2
+
+def softmax(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the softmax activation function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the softmax function.
+
+    Returns
+    -------
+    numpy array
+        The output of the softmax function.
+    """
+    e_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+    return e_z / np.sum(e_z, axis=1, keepdims=True)
+
+def softmax_gradient(z: np.ndarray) -> np.ndarray:
+    """
+    Compute the gradient of the softmax function.
+
+    Parameters
+    ----------
+    z : numpy array
+        The input to the softmax function.
+
+    Returns
+    -------
+    numpy array
+        The gradient of the softmax function.
+    """ 
+    # return error unimplemented, as softmax gradient is typically handled differently in backpropagation
+    raise NotImplementedError("Softmax gradient is not implemented. It is typically handled differently in backpropagation.")
+class ActivationFunction(Enum):
+    SIGMOID = "sigmoid"
+    RELU = "relu"
+    TANH = "tanh"
+    SOFTMAX = "softmax"
+ 
+ACTIVATION_MAP = {
+    ActivationFunction.SIGMOID.value: (sigmoid, sigmoid_gradient),
+    ActivationFunction.RELU.value: (relu, relu_gradient),
+    ActivationFunction.TANH.value: (tanh, tanh_gradient),
+    ActivationFunction.SOFTMAX.value: (softmax, softmax_gradient)
+} 
+    
+def get_activation_function(name: str) -> tuple[callable, callable]:
+    """
+    Get the activation function and its gradient based on the name.
+
+    Parameters
+    ----------
+    name : str
+        The name of the activation function.
+
+    Returns
+    -------
+    tuple of callable
+        The activation function and its gradient.
+    
+    Raises
+    ------
+    ValueError
+        If the activation function name is not recognized.
+    """
+    if name in ACTIVATION_MAP:
+        return ACTIVATION_MAP[name]
+    else:
+        raise ValueError(f"Unknown activation function: {name}")
 
 class L2Regularization:
     """
@@ -105,10 +240,62 @@ class BinaryCrossEntropy:
     regularization : L2Regularization, optional
         An instance of L2Regularization for regularization (default is None).
     """
-    def __init__(self, activation_function=sigmoid, activation_gradient=sigmoid_gradient, regularization: L2Regularization | None=None):
-        self.activation_function = activation_function
-        self.activation_gradient = activation_gradient
+    def __init__(self, activation_function_names: list[str] = [], regularization: L2Regularization | None=None):
+        self._activation_str = activation_function_names
+        _activations , _gradients_activation = self._init_activations()
+        self.activation_function =  _activations
+        self.activation_gradient =  _gradients_activation
         self.regularization = regularization
+        
+    def _init_activations(self) -> tuple[list[callable], list[callable]]:
+        ret = ([], [])
+        for name in self._activation_str:
+            _activation, _activation_gradient = get_activation_function(name)
+            ret[0].append(_activation)
+            ret[1].append(_activation_gradient)
+        return ret
+        
+    def validate_activation(self,num):    
+        """
+        Validate the number of activation functions.
+
+        Parameters
+        ----------
+        num : int
+            The number of activation functions provided.
+
+        Returns
+        -------
+        bool
+            True if the number of activation functions matches the expected count.
+
+        Raises
+        ------
+        ValueError
+            If the number of activation functions does not match the expected count when using a list of activation functions.
+        """
+        if len(self._activation_str) != num:
+            raise ValueError(f"Expected {num} activation functions, but got {len(self._activation_str)}")
+        return True
+        
+    def get_activation(self,index):
+        """
+        Get the activation function for a given layer.
+
+        Parameters
+        ----------
+        index : int
+            The index of the layer.
+
+        Returns
+        -------
+        callable
+            The activation function for the layer.
+        """
+        return self.activation_function[index]
+    
+    def _get_activation_gradient(self,index):
+        return self.activation_gradient[index]
     
     def cost(self,A: list[np.ndarray], weigths: list[np.ndarray], y: np.ndarray) -> float:      
         """
@@ -164,7 +351,7 @@ class BinaryCrossEntropy:
         deltas = [A_[-1] - y]
         for i in range(len(weigths) - 1, 0, -1):
             Z = Z_[i]
-            delta = deltas[-1] @ weigths[i] * sigmoid_gradient(Z)
+            delta = deltas[-1] @ weigths[i] *  self._get_activation_gradient(i)(Z)  # sigmoid_gradient(Z)
             delta = delta[:, 1:]
             deltas.append(delta)
 
