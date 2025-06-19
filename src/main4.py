@@ -1,7 +1,7 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue
-from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
+from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
 from scipy.io import loadmat
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import json
 from sklearn.model_selection import train_test_split
 
-DATASET_PATH = "FracGradient/datasets/ex3data1.mat"
-BASE_DIR = "FracGradient/results/output_MNIST_2/"
+DATASET_PATH = "datasets/ex3data1.mat"
+BASE_DIR = "results/output_MNIST_2/"
 NUM_EPOCHS = 5000
 VERBOSE = True
 
@@ -36,7 +36,11 @@ def main():
             400, 
             10, 
             BinaryCrossEntropy(
-                regularization=L2Regularization(0.1)
+                regularization=L2Regularization(0.1),
+                activation_function_names=[
+                    "sigmoid",
+                    "sigmoid",
+                ]
             ), 
             Optimizer(**params)
         ),

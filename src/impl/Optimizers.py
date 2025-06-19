@@ -470,3 +470,27 @@ class FracTrue(ClassicOptimizer):
         self.previous_grads = None
         self.previous_cost = None
         self.previous_weigths = None
+        
+class Frac3Adap(Frac3Optimizer):
+    def __init__(self, learning_rate=0.001, alpha_func=alpha_function, beta=0.9, increase_rate=1.1, decay_rate=0.6, verbose=False):
+        super().__init__(learning_rate, alpha_func, beta, verbose)
+        self.initial_learning_rate = learning_rate
+        self.increase_rate = increase_rate
+        self.decay_rate = decay_rate
+
+    def step(self, params, grads, cost):
+        self.compute_learning_rate(cost)
+        super().step(params, grads, cost)
+
+    def reset(self):
+        super().reset()
+        self.learning_rate = self.initial_learning_rate
+
+    def compute_learning_rate(self, cost):
+        if self.i == 0:
+            self.learning_rate = self.initial_learning_rate
+        elif cost < self.history['cost'][-1]:
+            self.learning_rate *= self.increase_rate
+        else:
+            self.learning_rate *= self.decay_rate
+        return self.learning_rate
