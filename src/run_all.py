@@ -1,7 +1,7 @@
 import pathlib
 import subprocess
 RUN_DIR = "src/"
-PYTHON_VERSION = "py"
+PYTHON_VERSION = "python3"
 
 def main():
     # run all main*.py files in the RUN_DIR

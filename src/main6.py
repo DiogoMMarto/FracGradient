@@ -12,8 +12,8 @@ from numpy import ndarray
 
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_4/"
-NUM_EPOCHS = 1000
-VERBOSE = True
+NUM_EPOCHS = 2000
+VERBOSE = False
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], y.max() + 1))
@@ -122,7 +122,7 @@ def main():
         plt.plot(history["cost"], label=name)
         if history["cost"][S] > y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=0.3, ymax=y_heigth)
+    plt.ylim(ymin=0, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history.png")
     
@@ -140,7 +140,7 @@ def main():
         plt.plot(history["time"], history["cost"], label=name)
         if history["cost"][S] > y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=0.3, ymax=y_heigth)
+    plt.ylim(ymin=0, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
     
