@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST_2/"
 NUM_EPOCHS = 5000
-VERBOSE = True
+VERBOSE = False
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))

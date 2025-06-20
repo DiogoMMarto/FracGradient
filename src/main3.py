@@ -13,7 +13,7 @@ from numpy import ndarray
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_2/"
 NUM_EPOCHS = 3000
-VERBOSE = True
+VERBOSE = False
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], y.max() + 1))
