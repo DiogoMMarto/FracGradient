@@ -70,7 +70,7 @@ def main():
     )
     
     D = [
-        ( ClassicOptimizer, {"learning_rate":0.0003}, BASE_DIR + "classical/" , "Gradient Descent"),
+        ( ClassicOptimizer, {"learning_rate":0.00015}, BASE_DIR + "classical/" , "Gradient Descent"),
         ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":0.001}, BASE_DIR + "adaptive/", "Adaptive Learning Rate"),
         # ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, BASE_DIR + "momentum/"),
         # ( FracOptimizer, {"learning_rate":0.001}, BASE_DIR + "frac/", "Fractional Gradient Descent"),
@@ -89,7 +89,7 @@ def main():
         # ( Frac3Adap, {"learning_rate":0.001,"beta":50}, BASE_DIR + "frac3A_B50/", "Fractional Gradient Descent V3 Adaptive Learning Rate"),
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
-        ( FracOptimizer2, {"learning_rate":0.0004,"beta":0.05}, BASE_DIR + "frac2B05/", "Fractional Gradient Descent V2"),
+        ( FracOptimizer2, {"learning_rate":0.0002,"beta":0.04}, BASE_DIR + "frac2B05/", "Fractional Gradient Descent V2"),
         ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "Fractional Gradient Descent"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
