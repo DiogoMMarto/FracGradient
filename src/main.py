@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue , FracOptimizerBStable
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
 from scipy.io import loadmat
 import numpy as np
@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST/"
 NUM_EPOCHS = 3000
-VERBOSE = False
+VERBOSE = True
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))
@@ -69,7 +69,12 @@ def main():
         ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/", "FracGradient"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
-        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/")
+        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracBStable05/", "FracGradient B Stable"),
+        ( FracOptimizerBStable, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracBStable001/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracBStable001/", "FracGradient B Stable 0.01"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.005}, BASE_DIR + "fracBStable0005/", "FracGradient B Stable 0.005"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":5}, BASE_DIR + "fracBStable5/", "FracGradient B Stable 5"),
     ]
     
     def run_pipeline(Optimizer,params,output):

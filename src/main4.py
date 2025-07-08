@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue, FracOptimizerBStable
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
 from scipy.io import loadmat
 import numpy as np
@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST_2/"
 NUM_EPOCHS = 5000
-VERBOSE = False
+VERBOSE = True
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))
@@ -69,7 +69,16 @@ def main():
         ( FracOptimizer2, {"learning_rate":0.5,"beta":0.1}, BASE_DIR + "frac2B01/" , "FracGradient"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
-        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/")
+        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
+        ( FracOptimizerBStable, {"learning_rate":0.9,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable 2"),
+        # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005_3/", "FracGradient B Stable inv"),
+        # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005_4/", "FracGradient B Stable sqrt"),
+        
+        
+        
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.05}, BASE_DIR + "fracBStable001_2/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.05}, BASE_DIR + "fracBStable001_3/", "FracGradient B Stable"),
     ]
     
     def run_pipeline(Optimizer,params,output):
