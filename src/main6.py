@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap, FracOptimizerBStable
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
@@ -13,7 +13,7 @@ from numpy import ndarray
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_4/"
 NUM_EPOCHS = 2000
-VERBOSE = False
+VERBOSE = True
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], y.max() + 1))
@@ -93,6 +93,7 @@ def main():
         ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGradient V2"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
+        ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
     ]
     
     def run_pipeline(Optimizer,params,output):

@@ -3,6 +3,9 @@ import subprocess
 RUN_DIR = "src/"
 PYTHON_VERSION = ".venv/bin/python3"
 # get arg 0 which is python that we are using to run this script
+import sys
+if len(sys.argv) > 1:
+    PYTHON_VERSION = sys.argv[1]
 
 def main():
     # run all main*.py files in the RUN_DIR

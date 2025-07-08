@@ -494,3 +494,51 @@ class Frac3Adap(Frac3Optimizer):
         else:
             self.learning_rate *= self.decay_rate
         return self.learning_rate
+    
+class FracOptimizerBStable(ClassicOptimizer):
+    def __init__(self, learning_rate=0.001, alpha_func = alpha_function, beta=0.9,  verbose=False):
+        """
+        Initialize the FracOptimizerBStable with specified learning rate, and verbosity.
+
+        Args:
+            learning_rate (float): The initial learning rate for the optimizer. Default is 0.001.
+            verbose (bool): If True, enables verbose output. Default is False.
+
+        Attributes:
+            learning_rate (float): Stores the initial learning rate.
+            fraction (float): Stores the fractional order.
+        """
+        super().__init__(learning_rate, verbose)
+        self.alpha_func = alpha_func
+        self.beta = beta
+        self.previous_weigths = None
+        self.previous_grads = None
+        self.previous_cost = None   
+        self.first_norm = []
+
+    def step(self, params, grads, cost):
+        if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
+            new_grads = grads
+            self.first_norm = [np.linalg.norm(grad) for grad in grads]
+            # print("First norm:", [np.mean(grad) * (grad.size ** 0.5) for grad in grads])
+            # print("First norm mean:", [np.linalg.norm(grad) for grad in grads])
+        else:
+            new_grads = []
+            for i in range(len(params)):
+                norm_grad = np.linalg.norm(self.previous_grads[i])
+                alpha = self.alpha_func(norm_grad / self.first_norm[i], self.beta)
+                new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
+                new_grads.append(new_grad)
+
+        self.previous_grads = [grad.copy() for grad in grads]
+        self.previous_cost = cost
+        self.previous_weigths = [weigths.copy() for weigths in params]
+        
+        super().step(params, new_grads, cost)
+
+    def reset(self):
+        super().reset()
+        self.previous_grads = None
+        self.previous_cost = None
+        self.previous_weigths = None
+        self.first_norm = []

@@ -71,7 +71,7 @@ def main():
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
+        (FracOptimizer(learning_rate=0.01,beta=0.001), "FracOptimizer B=0.001"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         # (tf.keras.optimizers.RMSprop(), "RMSprop"),

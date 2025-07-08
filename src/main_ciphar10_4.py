@@ -19,7 +19,7 @@ import os
 BATCH_SIZE = 128
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
-BASE_DIR = "results/output_cifar10_enet_dg/"
+BASE_DIR = "results/output_cifar10_mnet_dg/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True
@@ -37,16 +37,24 @@ def load_dataset():
     return X_train, y_train, X_test, y_test, datasets.cifar10.load_data()[0][1].tolist()
 
 def create_model():
-    # use ciphar10 ResNet34 model
-    model = tf.keras.applications.EfficientNetV2S(
-        include_top=True,
-        weights=None,
-        input_shape=(32,32,3),
+    # use ciphar10 MobileNetV2 model
+    model = tf.keras.applications.MobileNetV2(
+        input_shape=(32, 32, 3),
+        alpha=1.0,
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
         pooling=None,
-        classes=NUM_CLASSES,
-        classifier_activation='softmax',
-        include_preprocessing=True
     )
+    model.trainable = True  # Set the model to be trainable
+    model = models.Sequential([
+        model,
+        layers.GlobalAveragePooling2D(),
+        layers.BatchNormalization(),
+        layers.Dense(512, activation='relu'),
+        layers.Dropout(0.5),
+        layers.Dense(NUM_CLASSES, activation='softmax')
+    ])
     model.summary()
     return model
     
