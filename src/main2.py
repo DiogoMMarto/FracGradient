@@ -117,10 +117,14 @@ def main():
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
    
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
-        for future in futures:
-            future.result()
+    if False:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
+            for future in futures:
+                future.result()
+    else:
+        for Optimizer, params, output, _ in D:
+            run_pipeline(Optimizer, params, output)
     
     # open all history files and plot them
     plt.figure(figsize=(12, 8))
@@ -157,6 +161,17 @@ def main():
     plt.ylim(ymin=0.5, ymax=y_heigth)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
+    
+    # print the optimizer with lowest final cost
+    min_cost = float('inf')
+    best_optimizer = None
+    for Optimizer, _, output, name in D:
+        history = json.load(open(output + "history.json"))
+        final_cost = history["cost"][-1]
+        if final_cost < min_cost:
+            min_cost = final_cost
+            best_optimizer = name
+    print(f"The best optimizer is {best_optimizer} with a final cost of {min_cost:.4f}")
     
 if __name__ == "__main__":
     main()    

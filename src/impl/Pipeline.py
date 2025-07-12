@@ -7,6 +7,54 @@ import numpy as np
 import os
 import json
 
+from itertools import product
+
+def expand_tuple(t):
+    elements = [item if isinstance(item, list) else [item] for item in t]
+    return list(product(*elements))
+
+from itertools import product
+
+def expand_dict_combinations(d):
+    # Separate keys with list values and non-list values
+    keys = []
+    values = []
+    for k, v in d.items():
+        if isinstance(v, list):
+            keys.append(k)
+            values.append(v)
+        else:
+            keys.append(k)
+            values.append([v])  # wrap non-list values for consistent processing
+    
+    # Create all combinations (Cartesian product)
+    combinations = product(*values)
+    
+    # Rebuild dictionaries from combinations
+    return [dict(zip(keys, combo)) for combo in combinations]
+
+def gen_names(d: list[tuple]):
+    ret = []
+    for i in range(len(d)):
+        opt = d[i][0]
+        params: dict = d[i][1]
+        output_dir: str = d[i][2]
+        name:str  = d[i][3]
+        
+        params_str = "_".join(f"{k}_{v}" for k, v in params.items())
+        new_output_dir = output_dir[:-1] + f"{params_str}/"
+        new_name = f"{name} {params_str.replace('_', ' ')}"
+        
+        new_tuple = (opt, params, new_output_dir, new_name)
+        ret.append(new_tuple)
+    return ret
+
+def gen_grid_search(d: list[tuple]):
+    expanded = [ (d[i][0], expand_dict_combinations(d[i][1]), d[i][2], d[i][3]) for i in range(len(d)) ]
+    expanded = [ expand_tuple(t) for t in expanded ]
+    expanded = [ item for sublist in expanded for item in sublist ]  # Flatten
+    return gen_names(expanded)
+
 class Pipeline:
     """A pipeline for training and evaluating a neural network model.
     This class handles the training of the model, evaluation of its performance, and saving of results such as classification reports, confusion matrices, and training history.
@@ -59,11 +107,37 @@ class Pipeline:
         self.X_test = X_test	
         self.y_test = y_test
         
+    def load_weigths_and_history(self):
+        """Load weights and history from the output directory if they exist."""
+        if not os.path.exists(self.output_dir):
+            print(f"Output directory {self.output_dir} does not exist.")
+            return
+        
+        # Load weights
+        self.model.weights = []
+        for i in range(len(self.model.layers)+1):
+            weights_path = os.path.join(self.output_dir, f'weights_{i}.npy')
+            if os.path.exists(weights_path):
+                self.model.weights.append(np.load(weights_path))
+            else:
+                print(f"Weight file {weights_path} does not exist.")
+        
+        # Load history
+        history_path = os.path.join(self.output_dir, 'history.json')
+        if os.path.exists(history_path):
+            with open(history_path, 'r') as f:
+                self.model.optimizer.history = json.load(f)
+        else:
+            print(f"History file {history_path} does not exist.")
+        
     def run(self,epochs=100,verbose=False):
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
             return
-        self.model.fit(self.X, self.y, epochs=epochs, verbose=verbose)
+            self.load_weigths_and_history()
+            print("Loaded existing weights and history.")
+        else:
+            self.model.fit(self.X, self.y, epochs=epochs, verbose=verbose)
         y_pred = self.model.predict(self.X)
         self.evaluate(y_pred)
         
@@ -135,4 +209,20 @@ class Pipeline:
             np.save(weights_path, self.model.weights[i])
         
         print(f"Saved results to {self.output_dir}")
-    
+        
+        if "alpha" in history:
+            # create a plot with number of layers of subplots each plotting the alpha values for each layer
+            num_layers = len(history['alpha'])
+            fig, axs = plt.subplots(num_layers, 1, figsize=(12, 6 * num_layers))
+            if num_layers == 1:
+                axs = [axs]
+            for i in range(num_layers):
+                axs[i].plot(history['alpha'][i])
+                axs[i].set_title(f'Alpha values for layer {i}')
+                axs[i].set_xlabel('Iteration')
+                axs[i].set_ylabel('Alpha')
+                axs[i].set_ylim(0, 1.02)
+            plt.suptitle('Alpha values for each layer over iterations')
+            plt.tight_layout()
+            plt.savefig(self.output_dir + 'alpha_values.png')
+            plt.close()
