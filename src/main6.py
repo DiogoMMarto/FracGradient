@@ -91,7 +91,7 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         ( FracOptimizer2, {"learning_rate":0.0002,"beta":0.04}, BASE_DIR + "frac2B05/", "FracGradient"),
         ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGradient V2"),
-        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
+        ( AdamOptimizer, {"learning_rate":0.01}, BASE_DIR + "adam/", "Adam Optimizer"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
         ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
     ]
@@ -100,7 +100,7 @@ def main():
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
     
-    if True:
+    if False:
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(run_pipeline, Optimizer, params, output) for Optimizer, params, output, _ in D]
             for future in futures:

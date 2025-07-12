@@ -84,11 +84,14 @@ def main():
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
-    
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
-        for future in futures:
-            future.result()
+    if False:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
+            for future in futures:
+                future.result()
+    else:
+        for Optimizer, params, output, _ in D:
+            run_pipeline(Optimizer, params, output)
     
     # open all history files and plot them
     plt.figure(figsize=(12, 8))

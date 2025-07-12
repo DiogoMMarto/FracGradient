@@ -307,6 +307,7 @@ class FracOptimizer(ClassicOptimizer):
     def step(self, params, grads, cost):
         if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
             new_grads = grads
+            self.history['alpha'] = [[] for _ in range(len(self.parent.weights))] # type: ignore
         else:
             new_grads = []
             for i in range(len(params)):
@@ -314,12 +315,12 @@ class FracOptimizer(ClassicOptimizer):
                 alpha = self.alpha_func(norm_grad, self.beta)
                 new_grad = frac_gradient_from_gradient(alpha, self.previous_grads[i], params[i], self.previous_weigths[i])
                 new_grads.append(new_grad)
-
+                self.history['alpha'][i].append(alpha)
+                
         self.previous_grads = [grad.copy() for grad in grads]
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
         super().step(params, new_grads, cost)
-
 
     def reset(self):
         super().reset()
