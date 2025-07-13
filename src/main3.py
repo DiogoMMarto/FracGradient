@@ -127,7 +127,7 @@ def main():
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
    
-    if True:
+    if False:
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
             for future in futures:

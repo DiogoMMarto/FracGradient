@@ -212,7 +212,7 @@ class Pipeline:
     def run(self,epochs=100,verbose=False):
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
-            return
+            # return
             self.load_weigths_and_history()
             print("Loaded existing weights and history.")
         else:
