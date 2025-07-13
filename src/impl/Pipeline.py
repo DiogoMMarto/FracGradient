@@ -6,6 +6,7 @@ matplotlib.use('Agg')
 import numpy as np
 import os
 import json
+import math
 
 from itertools import product
 
@@ -15,7 +16,8 @@ def end_pipeline_graphs(D, BASE_DIR):
     plt.ylabel("$J(\\Theta)$")
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
-    y_heigth = 100
+    y_heigth = float('inf')
+    m = float('inf')
     S = 10
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
@@ -23,7 +25,9 @@ def end_pipeline_graphs(D, BASE_DIR):
         plt.plot(history["cost"], label=name)
         if history["cost"][S] < y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
+        if history["cost"][-1] < m:
+            m = history["cost"][-1]
+    plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
     plt.savefig(BASE_DIR + "history.png")
     
@@ -33,27 +37,32 @@ def end_pipeline_graphs(D, BASE_DIR):
     plt.ylabel("$J(\\Theta)$")
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
-    y_heigth = 0
+    y_heigth = float('inf')
     S = 10
+    m = float('inf')
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
         # name = output.split("/")[-2]
         plt.plot(history["time"], history["cost"], label=name)
-        if history["cost"][S] > y_heigth:
+        if history["cost"][S] < y_heigth:
             y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
+        if history["cost"][-1] < m:
+            m = history["cost"][-1]
+    plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
     
     min_cost = float('inf')
     best_optimizer = None
+    path_best = None
     for Optimizer, _, output, name in D:
         history = json.load(open(output + "history.json"))
         final_cost = history["cost"][-1]
         if final_cost < min_cost:
             min_cost = final_cost
             best_optimizer = name
-    print(f"The best optimizer is {best_optimizer} with a final cost of {min_cost:.4f}")
+            path_best = output
+    print(f"The best optimizer is {best_optimizer} with a final cost of {min_cost:.4f} {path_best}")
     
     # if the optimizers have params beta, plot the final cost vs beta
     plt.figure(figsize=(12, 8))
@@ -62,7 +71,6 @@ def end_pipeline_graphs(D, BASE_DIR):
     plt.xscale("log")
     plt.ylabel("$J(\\Theta)$")
     # limit y-axis to [0, 1]
-    plt.ylim(0.2, 0.5)
     plt.title("Final Cost vs Beta")
     plt.tight_layout()
     betas = []
@@ -74,6 +82,8 @@ def end_pipeline_graphs(D, BASE_DIR):
             betas.append(params["beta"])
             costs.append(final_cost)
     plt.scatter(betas, costs)
+    costs = [ i for i in costs if i > 0 ]
+    plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
     # plt.plot(betas, costs, label="Final Cost vs Beta")
     plt.legend()
     plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
