@@ -1,4 +1,4 @@
-from impl.Pipeline import Pipeline, gen_grid_search
+from impl.Pipeline import Pipeline, gen_grid_search , end_pipeline_graphs
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue , FracOptimizerBStable
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
@@ -98,74 +98,7 @@ def main():
             p = p_gen(Optimizer, params, output)
             p.run(epochs=NUM_EPOCHS, verbose=VERBOSE)
     
-    # open all history files and plot them
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Iteration")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
-    plt.tight_layout()
-    y_heigth = 100
-    S = 10
-    for Optimizer , _ , output,name in D:
-        history = json.load(open(output + "history.json"))
-        # name = output.split("/")[-2]
-        plt.plot(history["cost"], label=name)
-        if history["cost"][S] < y_heigth:
-            y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
-    plt.legend()
-    plt.savefig(BASE_DIR + "history.png")
-    
-    # similar plot but include x = time and y = cost
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Time")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
-    plt.tight_layout()
-    y_heigth = 0
-    S = 10
-    for Optimizer , _ , output,name in D:
-        history = json.load(open(output + "history.json"))
-        # name = output.split("/")[-2]
-        plt.plot(history["time"], history["cost"], label=name)
-        if history["cost"][S] > y_heigth:
-            y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
-    plt.legend()
-    plt.savefig(BASE_DIR + "history_time.png")
-    
-    min_cost = float('inf')
-    best_optimizer = None
-    for Optimizer, _, output, name in D:
-        history = json.load(open(output + "history.json"))
-        final_cost = history["cost"][-1]
-        if final_cost < min_cost:
-            min_cost = final_cost
-            best_optimizer = name
-    print(f"The best optimizer is {best_optimizer} with a final cost of {min_cost:.4f}")
-    
-    # if the optimizers have params beta, plot the final cost vs beta
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
-    # logscale x-axis
-    plt.xscale("log")
-    plt.ylabel("$J(\\Theta)$")
-    # limit y-axis to [0, 1]
-    plt.ylim(0.2, 0.5)
-    plt.title("Final Cost vs Beta")
-    plt.tight_layout()
-    betas = []
-    costs = []
-    for Optimizer, params, output, name in D:
-        if "beta" in params:
-            history = json.load(open(output + "history.json"))
-            final_cost = history["cost"][-1]
-            betas.append(params["beta"])
-            costs.append(final_cost)
-    plt.scatter(betas, costs)
-    # plt.plot(betas, costs, label="Final Cost vs Beta")
-    plt.legend()
-    plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
+    end_pipeline_graphs(D, BASE_DIR)
     
 if __name__ == "__main__":
     main()    
