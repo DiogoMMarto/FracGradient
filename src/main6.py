@@ -1,4 +1,4 @@
-from impl.Pipeline import Pipeline
+from impl.Pipeline import Pipeline , gen_grid_search, end_pipeline_graphs
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap, FracOptimizerBStable
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
@@ -96,6 +96,15 @@ def main():
         ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
     ]
     
+    D = gen_grid_search(
+        [
+         (FracOptimizer , {"learning_rate":[0.1,0.01,0.001,0.0005,0.0001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
+         (FracOptimizer , {"learning_rate":[0.0002],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracAdap , {"learning_rate":[0.0002],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
+        ]
+    )
+    
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
@@ -109,41 +118,7 @@ def main():
         for Optimizer, params, output, name in D:
             run_pipeline(Optimizer, params, output)
     
-    # open all history files and plot them
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Iteration")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
-    plt.tight_layout()
-    y_heigth = 0
-    S = 0
-    for Optimizer , _ ,  output , name in D:
-        history = json.load(open(output + "history.json"))
-        # name = output.split("/")[-2]
-        plt.plot(history["cost"], label=name)
-        if history["cost"][S] > y_heigth:
-            y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
-    plt.legend()
-    plt.savefig(BASE_DIR + "history.png")
-    
-    # similar plot but include x = time and y = cost
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Time")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
-    plt.tight_layout()
-    y_heigth = 0
-    S = 0
-    for Optimizer , _ , output , name in D:
-        history = json.load(open(output + "history.json"))
-        # name = output.split("/")[-2]
-        plt.plot(history["time"], history["cost"], label=name)
-        if history["cost"][S] > y_heigth:
-            y_heigth = history["cost"][S]
-    plt.ylim(ymin=0, ymax=y_heigth)
-    plt.legend()
-    plt.savefig(BASE_DIR + "history_time.png")
+    end_pipeline_graphs(D, BASE_DIR)
     
 if __name__ == "__main__":
     main()    
