@@ -1,6 +1,6 @@
 from impl.Pipeline import Pipeline , gen_grid_search, end_pipeline_graphs
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap, FracOptimizerBStable
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap, FracOptimizerBStable , FracOptimizer4
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
@@ -95,6 +95,7 @@ def main():
         ( AdamOptimizer, {"learning_rate":0.01}, BASE_DIR + "adam/", "Adam Optimizer"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
         ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
+        ( FracOptimizer4, {'learning_rate': 0.001, 'beta': 0.05}, BASE_DIR + "frac4B05/", "FracGradient V4"),
     ]
     
     D2 = gen_grid_search(

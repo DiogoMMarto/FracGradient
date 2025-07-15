@@ -31,7 +31,16 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
             final_cost = history["cost"][-1]
             betas.append(params["beta"])
             costs.append(final_cost)
-            
+    # if the optimizers have params beta, plot the final cost vs beta
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Beta")
+    # logscale x-axis
+    plt.xscale("log")
+    plt.ylabel("$J(\\Theta)$")
+    # limit y-axis to [0, 1]
+    plt.title("Final Cost vs Beta")
+    plt.tight_layout()
+    # print("Betas:", sorted(betas))
     plt.scatter(betas, costs)
     costs = [ i for i in costs if i > 0 ]
     plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
@@ -61,7 +70,9 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
         print(f"{Optimizer_name}: {name} with cost {cost:.4f} at {output}")
         print(f"Parameters: {params}")
         if "beta" in params:
-            print(f"{params['beta']}    {number_of_models_params}   {cost}")
+            print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
+            with open("beta_results.txt", "a") as f:
+                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}\n")
             
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        
@@ -106,16 +117,6 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
     plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
-    
-    # if the optimizers have params beta, plot the final cost vs beta
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
-    # logscale x-axis
-    plt.xscale("log")
-    plt.ylabel("$J(\\Theta)$")
-    # limit y-axis to [0, 1]
-    plt.title("Final Cost vs Beta")
-    plt.tight_layout()
           
 def expand_tuple(t):
     elements = [item if isinstance(item, list) else [item] for item in t]

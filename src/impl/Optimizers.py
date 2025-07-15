@@ -543,3 +543,46 @@ class FracOptimizerBStable(ClassicOptimizer):
         self.previous_cost = None
         self.previous_weigths = None
         self.first_norm = []
+        
+class FracOptimizer4(ClassicOptimizer):
+    def __init__(self, learning_rate=0.001, alpha_func = alpha_function, beta=0.9,  verbose=False):
+        """
+        Initialize the FracOptimizer with specified learning rate, and verbosity.
+
+        Args:
+            learning_rate (float): The initial learning rate for the optimizer. Default is 0.001.
+            verbose (bool): If True, enables verbose output. Default is False.
+
+        Attributes:
+            learning_rate (float): Stores the initial learning rate.
+            fraction (float): Stores the fractional order.
+        """
+        super().__init__(learning_rate, verbose)
+        self.alpha_func = alpha_func
+        self.beta = beta
+        self.previous_weigths = None
+        self.previous_grads = None
+        self.previous_cost = None   
+
+    def step(self, params, grads, cost):
+        if self.previous_cost is None or self.previous_weigths is None:
+            new_grads = grads
+            self.history['alpha'] = [[] for _ in range(len(self.parent.weights))] # type: ignore
+        else:
+            new_grads = []
+            for i in range(len(params)):
+                norm_grad = np.linalg.norm(grads[i])
+                alpha = self.alpha_func(norm_grad, self.beta)
+                new_grad = frac_gradient_from_gradient(alpha, grads[i], params[i], self.previous_weigths[i])
+                new_grads.append(new_grad)
+                self.history['alpha'][i].append(alpha)
+                
+        self.previous_cost = cost
+        self.previous_weigths = [weigths.copy() for weigths in params]
+        super().step(params, new_grads, cost)
+
+    def reset(self):
+        super().reset()
+        self.previous_grads = None
+        self.previous_cost = None
+        self.previous_weigths = None
