@@ -46,6 +46,7 @@ def create_model():
         classes=10,
         classifier_activation='softmax'
     )
+    model.summary()
     return model
     
 def main():
