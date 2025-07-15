@@ -71,7 +71,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
         print(f"Parameters: {params}")
         if "beta" in params:
             print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
-            with open("beta_results.txt", "a") as f:
+            with open("results/beta_results.txt", "a") as f:
                 f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}\n")
             
     # extract only the best optimizers to D
