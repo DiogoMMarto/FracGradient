@@ -11,8 +11,9 @@ from sklearn.model_selection import train_test_split
 
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST/"
-NUM_EPOCHS = 1000
-VERBOSE = True
+NUM_EPOCHS = 3000
+VERBOSE = False
+ARCHITECTURE = [25]
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))
@@ -32,7 +33,7 @@ def main():
         X, 
         y, 
         NeuralNetwork(
-            [25], 
+            ARCHITECTURE, 
             400, 
             10, 
             BinaryCrossEntropy(
@@ -77,19 +78,21 @@ def main():
         # ( FracOptimizerBStable, {"learning_rate":1,"beta":5}, BASE_DIR + "fracBStable5/", "FracGradient B Stable 5"),
     ]
     
-    D = gen_grid_search(
+    D2 = gen_grid_search(
         [(FracOptimizer , {"learning_rate":[10,5,2,1,0.1,0.01,0.001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
          (FracOptimizer , {"learning_rate":[1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),]
     )
     
+    D.extend(D2)
+    
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
     
-    if False:
-        with ThreadPoolExecutor(max_workers=8) as executor:
+    if True:
+        with ThreadPoolExecutor(max_workers=12) as executor:
             futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
             for future in futures:
                 future.result()
@@ -98,7 +101,17 @@ def main():
             p = p_gen(Optimizer, params, output)
             p.run(epochs=NUM_EPOCHS, verbose=VERBOSE)
     
-    end_pipeline_graphs(D, BASE_DIR)
+    number_of_models_params = 0
+    x_input_dim = X.shape[1]
+    y_output_dim = y.shape[1]
+    layers = [x_input_dim, *ARCHITECTURE, y_output_dim]
+    print(f"Input dimension: {x_input_dim}, Output dimension: {y_output_dim}")
+    for i,l in enumerate(layers[:-1]):
+        previous = l + 1
+        after = layers[i+1] 
+        number_of_models_params += previous * after
+    
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params)
     
 if __name__ == "__main__":
     main()    

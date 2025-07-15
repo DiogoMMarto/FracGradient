@@ -14,6 +14,7 @@ DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_2/"
 NUM_EPOCHS = 3000
 VERBOSE = True
+ARCHITECTURE = [64]
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], y.max() + 1))
@@ -70,7 +71,7 @@ def main():
         X, 
         y, 
         NeuralNetwork(
-            [64], 
+            ARCHITECTURE, 
             X.shape[1], 
             y.shape[1], 
             BinaryCrossEntropy(
@@ -114,7 +115,7 @@ def main():
         ( FracOptimizerBStable, {"learning_rate":0.1,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
     ]
     
-    D = gen_grid_search(
+    D2 = gen_grid_search(
         [
          (FracOptimizer , {"learning_rate":[10,5,2,1,0.1,0.01,0.001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
@@ -122,6 +123,8 @@ def main():
          (FracAdap , {"learning_rate":[0.1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
         ]
     )
+    
+    D.extend(D2)
     
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
@@ -136,7 +139,17 @@ def main():
         for Optimizer, params, output, _ in D:
             run_pipeline(Optimizer, params, output)
     
-    end_pipeline_graphs(D, BASE_DIR)
+    number_of_models_params = 0
+    x_input_dim = X.shape[1]
+    y_output_dim = y.shape[1]
+    layers = [x_input_dim, *ARCHITECTURE, y_output_dim]
+    print(f"Input dimension: {x_input_dim}, Output dimension: {y_output_dim}")
+    for i,l in enumerate(layers[:-1]):
+        previous = l + 1
+        after = layers[i+1] 
+        number_of_models_params += previous * after
+    
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params)
     
 if __name__ == "__main__":
     main()    

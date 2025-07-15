@@ -10,7 +10,62 @@ import math
 
 from itertools import product
 
-def end_pipeline_graphs(D, BASE_DIR):
+def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
+    betas = []
+    costs = []
+    
+    for Optimizer, params, output, name in D:
+        params_path = output + "params.json"
+        if not os.path.exists(params_path):
+            with open(params_path, 'w') as f:
+                json.dump(params, f)
+    
+    for dir in os.listdir(BASE_DIR):
+        params_path = os.path.join(BASE_DIR, dir, "params.json")
+        if not os.path.exists(params_path):
+            print(f"Params file {params_path} does not exist, skipping.")
+            continue
+        params = json.load(open(params_path))
+        if "beta" in params:
+            history = json.load(open(os.path.join(BASE_DIR, dir, "history.json")))
+            final_cost = history["cost"][-1]
+            betas.append(params["beta"])
+            costs.append(final_cost)
+            
+    plt.scatter(betas, costs)
+    costs = [ i for i in costs if i > 0 ]
+    plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
+    # plt.plot(betas, costs, label="Final Cost vs Beta")
+    plt.legend()
+    plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
+    
+    
+    def load_last_cost(output):
+        history = json.load(open(output + "history.json"))
+        return history["cost"][-1]
+    
+    last_cost = { (Optimizer, tuple(params.items()), output, name): load_last_cost(output) for Optimizer, params, output, name in D }
+    # sort the optimizers by last cost
+    sorted_last_cost = sorted(last_cost.items(), key=lambda x: x[1])
+    # print best for each Optimizer class name
+    best_per_optimizer = {}
+    for (Optimizer, params, output, name), cost in sorted_last_cost:
+        if Optimizer.__name__ not in best_per_optimizer:
+            best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
+        else:
+            if cost < best_per_optimizer[Optimizer.__name__][4]:
+                best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
+    print("Best for each Optimizer class:")
+    for Optimizer_name, (Optimizer, params, output, name, cost) in best_per_optimizer.items():
+        params = {k: v for k, v in params}
+        print(f"{Optimizer_name}: {name} with cost {cost:.4f} at {output}")
+        print(f"Parameters: {params}")
+        if "beta" in params:
+            print(f"{params['beta']}    {number_of_models_params}   {cost}")
+            
+    # extract only the best optimizers to D
+    D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        
+    
     plt.figure(figsize=(12, 8))
     plt.xlabel("Iteration")
     plt.ylabel("$J(\\Theta)$")
@@ -52,18 +107,6 @@ def end_pipeline_graphs(D, BASE_DIR):
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")
     
-    min_cost = float('inf')
-    best_optimizer = None
-    path_best = None
-    for Optimizer, _, output, name in D:
-        history = json.load(open(output + "history.json"))
-        final_cost = history["cost"][-1]
-        if final_cost < min_cost:
-            min_cost = final_cost
-            best_optimizer = name
-            path_best = output
-    print(f"The best optimizer is {best_optimizer} with a final cost of {min_cost:.4f} {path_best}")
-    
     # if the optimizers have params beta, plot the final cost vs beta
     plt.figure(figsize=(12, 8))
     plt.xlabel("Beta")
@@ -73,21 +116,7 @@ def end_pipeline_graphs(D, BASE_DIR):
     # limit y-axis to [0, 1]
     plt.title("Final Cost vs Beta")
     plt.tight_layout()
-    betas = []
-    costs = []
-    for Optimizer, params, output, name in D:
-        if "beta" in params:
-            history = json.load(open(output + "history.json"))
-            final_cost = history["cost"][-1]
-            betas.append(params["beta"])
-            costs.append(final_cost)
-    plt.scatter(betas, costs)
-    costs = [ i for i in costs if i > 0 ]
-    plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
-    # plt.plot(betas, costs, label="Final Cost vs Beta")
-    plt.legend()
-    plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
-
+          
 def expand_tuple(t):
     elements = [item if isinstance(item, list) else [item] for item in t]
     return list(product(*elements))
