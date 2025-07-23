@@ -42,7 +42,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
     plt.tight_layout()
     # print("Betas:", sorted(betas))
     plt.scatter(betas, costs)
-    costs = [ i for i in costs if i > 0 ]
+    costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
     plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
     # plt.plot(betas, costs, label="Final Cost vs Beta")
     plt.legend()
