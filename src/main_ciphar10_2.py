@@ -23,7 +23,7 @@ NUM_CLASSES = 10
 DATA_AUGMENTATION = True
 BASE_DIR = "results/output_cifar10_cnn_dg/"
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 3
+NUM_EPOCHS = 150
 VERBOSE = True
 
 def load_dataset():
