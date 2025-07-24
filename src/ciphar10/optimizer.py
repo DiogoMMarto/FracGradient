@@ -31,36 +31,64 @@ class FracOptimizer(Optimizer):
         
         self.beta = beta
         self.alpha_func = alpha_func
-        tf.print(f"FracOptimizer '{self.name}' initialized!")
+        self.grad_norms_current_step = {}
+        self.grad_norm_storage = {}
+        self.grad_norm_counters = {}
+        self.max_storage_size = 150 * 1563
 
     def build(self, var_list):
-        """
-        Builds the optimizer's state variables (slots).
-
-        Args:
-            var_list: The list of model variables to optimize.
-        """
-        self.prev_weights = []
-        self.prev_grads = []
-
-        for i, var in enumerate(var_list):
-            self.prev_weights.append(
-                self.add_variable_from_reference(
-                    reference_variable=var, 
-                    name=f"prev_weight_{i}", 
-                    initializer="zeros"
-                )
-            )
-            self.prev_grads.append(
-                self.add_variable_from_reference(
-                    reference_variable=var, 
-                    name=f"prev_grad_{i}",
-                    initializer="zeros"
-                )
-            )
+        super().build(var_list)
         
-        super().build(var_list) 
+        if not hasattr(self, '_built'):
+                # Initialize previous weights and gradients
+                self.prev_weights = []
+                self.prev_grads = []
 
+                for i, var in enumerate(var_list):
+                    print(f"  {i}: {var.name} -> index {i}")
+                    self.prev_weights.append(
+                        self.add_variable_from_reference(
+                            reference_variable=var, 
+                            name=f"prev_weight_{i}", 
+                            initializer="zeros"
+                        )
+                    )
+                    self.prev_grads.append(
+                        self.add_variable_from_reference(
+                            reference_variable=var, 
+                            name=f"prev_grad_{i}",
+                            initializer="zeros"
+                        )
+                    )
+                    self.grad_norm_storage[i] = self.add_variable(
+                        shape=(self.max_storage_size,),
+                        dtype=tf.float32,
+                        name=f"grad_norms_{i}",
+                        initializer='zeros'
+                    )
+                    # Counter to track how many values we've stored
+                    self.grad_norm_counters[i] = self.add_variable(
+                        shape=(),
+                        dtype=tf.int32,
+                        name=f"grad_norm_counter_{i}",
+                        initializer='zeros'
+                    )
+                self._built = True
+
+    def _store_grad_norm(self, layer_name, alpha_value):
+        """Store grad norm in TF variable (XLA compatible)."""
+        counter = self.grad_norm_counters[layer_name]
+        storage = self.grad_norm_storage[layer_name]
+        
+        # Use modulo to wrap around if we exceed storage size
+        index = counter % self.max_storage_size
+        # Update the storage
+        storage[index].assign(alpha_value)
+        
+        # Increment counter
+        self.grad_norm_counters[layer_name].assign_add(1)
+        
+        return storage
    
     def update_step(self, gradient, variable, learning_rate):
             """
@@ -87,6 +115,8 @@ class FracOptimizer(Optimizer):
             def fractional_gradient_update():
                 norm_grad = tf.norm(prev_grad)
                 alpha = self.alpha_func(norm_grad, self.beta)
+                
+                self._store_grad_norm(variable_index, alpha)
 
                 diff = tf.abs(variable - prev_weight)
         
@@ -101,7 +131,26 @@ class FracOptimizer(Optimizer):
             self.assign(prev_weight, variable)
             self.assign(prev_grad, gradient)
 
-
+    def get_grad_norms_history(self):
+        """Extract grad norms history as numpy arrays."""
+        history = {}
+        for layer_name in self.grad_norm_storage:
+            counter_val = int(self.grad_norm_counters[layer_name].numpy())
+            stored_values = self.grad_norm_storage[layer_name].numpy()
+            
+            # Only take the values that were actually stored
+            if counter_val <= self.max_storage_size:
+                history[layer_name] = stored_values[:counter_val].tolist()
+            else:
+                # If we wrapped around, we need to reconstruct the order
+                start_idx = counter_val % self.max_storage_size
+                history[layer_name] = (
+                    stored_values[start_idx:].tolist() + 
+                    stored_values[:start_idx].tolist()
+                )
+        
+        return history
+    
     def get_config(self):
         """
         Returns the configuration of the optimizer.

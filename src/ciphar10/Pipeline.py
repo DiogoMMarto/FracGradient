@@ -7,6 +7,74 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg') # Use Agg backend for matplotlib to avoid GUI issues in headless environments
 
+class GradNormCollectorCallback(tf.keras.callbacks.Callback):
+    """Callback that extracts grad norms from XLA-compatible optimizer."""
+    
+    def __init__(self):
+        super().__init__()
+        self.final_grad_norms = {}
+    
+    def on_train_end(self, logs=None):
+        """Extract grad norms at the end of training."""
+        optimizer = self.model.optimizer
+        if hasattr(optimizer, 'get_grad_norms_history'):
+            self.final_grad_norms = optimizer.get_grad_norms_history()
+    
+    def get_history(self):
+        """Return the collected grad norms history."""
+        return self.final_grad_norms
+# ---- Visualization Functions ----
+def moving_average(values, window=1):
+    if window <= 1:
+        return np.array(values)
+    kernel = np.ones(window) / window
+    return np.convolve(values, kernel, mode="valid")
+
+def plot_gradient_norms(history, 
+                        smooth=1, log_scale=True, 
+                        per_layer=False, figsize=(10, 6)):
+    """
+    Plot gradient L2 norms tracked during training.
+
+    Args:
+        history (dict): {layer_name: [grad_norms]}
+        smooth (int): Moving average window (default=1, no smoothing).
+        log_scale (bool): Logarithmic y-axis for gradients.
+        per_layer (bool): Whether to create separate subplots per layer.
+        figsize (tuple): Figure size.
+    """
+    if not per_layer:
+        plt.figure(figsize=figsize)
+        for layer, norms in history.items():
+            smoothed = moving_average(norms, smooth)
+            plt.plot(smoothed, label=f"{layer} grad norm")
+        plt.xlabel("Training Step")
+        plt.ylabel("Gradient L2 Norm")
+        if log_scale:
+            plt.yscale("log")
+        plt.title("Gradient Norm History")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        # plt.show()
+    else:
+        n_layers = len(history)
+        fig, axes = plt.subplots(n_layers, 1, figsize=(figsize[0], figsize[1]*n_layers))
+        if n_layers == 1:
+            axes = [axes]
+        for ax, (layer, norms) in zip(axes, history.items()):
+            smoothed = moving_average(norms, smooth)
+            ax.plot(smoothed, label=f"{layer} grad norm")
+            if log_scale:
+                ax.set_yscale("log")
+            ax.set_ylabel("Grad Norm")
+            ax.legend()
+            ax.grid(True, alpha=0.3)
+        axes[-1].set_xlabel("Training Step")
+        plt.suptitle("Gradient Norms per Layer")
+        plt.tight_layout()
+        # plt.show()
+
 from sklearn.metrics import confusion_matrix, classification_report
 
 class TimePerEpochCallback(tf.keras.callbacks.Callback):
@@ -69,6 +137,12 @@ class Pipeline:
         self.overwrite = overwrite
         self.continue_training = continue_training
         self.compile_kwargs = compile_kwargs if compile_kwargs is not None else {}
+        # if self.compile_kwargs.get("optimizer"):
+        #     base_optimizer = self.compile_kwargs["optimizer"]
+        #     track_grad = GradientNormTrackingOptimizer(base_optimizer)
+        #     self.compile_kwargs["optimizer"] = track_grad
+        # else:
+        #     self.compile_kwargs["optimizer"] = GradientNormTrackingOptimizer(tf.keras.optimizers.Adam())
         self.batch_size = batch_size
         
     def save(self):
@@ -152,6 +226,7 @@ class Pipeline:
             history_time = self.history.get('time', [])
             history_cost_validation = self.history.get('val_loss', [])
             history_accuracy_validation = self.history.get('val_accuracy', [])
+            history_grad_norms = self.history.get('grad_norms', {})
 
             plt.figure(figsize=(10, 5))
             plt.plot(history_cost, label='Training Loss')
@@ -210,6 +285,23 @@ class Pipeline:
                 plt.legend()
                 plt.savefig(self.output_dir + '/validation_accuracy.png')
                 plt.close()
+                
+            if len(history_grad_norms) > 0:
+                plot_gradient_norms(history_grad_norms, 
+                                    smooth=1, 
+                                    log_scale=False, 
+                                    per_layer=False, 
+                                    figsize=(10, 6))
+                plt.savefig(self.output_dir + '/gradient_norms.png')
+                plt.close()
+                
+                plot_gradient_norms(history_grad_norms,
+                                    smooth=1,
+                                    log_scale=False,
+                                    per_layer=True,
+                                    figsize=(10, 6))
+                plt.savefig(self.output_dir + '/gradient_norms_per_layer.png')
+                plt.close()
   
     def run(self, epochs=100, verbose=False):
         """
@@ -223,7 +315,7 @@ class Pipeline:
         if self.continue_training:
             self.load()
         
-        callbacks = [TimePerEpochCallback()]
+        callbacks = [TimePerEpochCallback(),GradNormCollectorCallback()]
         self.model.compile(**self.compile_kwargs)
         
         if self.data_augmentation:
@@ -256,6 +348,7 @@ class Pipeline:
             )
         self.history = self.history.history
         self.history['time'] = [callback.times for callback in callbacks if isinstance(callback, TimePerEpochCallback)][0]
+        self.history['grad_norms'] = [callback.get_history() for callback in callbacks if isinstance(callback, GradNormCollectorCallback)][0]
         os.makedirs(self.output_dir, exist_ok=True)
         self.evaluate()
         self.save()

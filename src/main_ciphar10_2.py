@@ -1,5 +1,7 @@
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
+# tf.config.run_functions_eagerly(True)
+
 from ciphar10.Pipeline import Pipeline
 from ciphar10.Optimizer import FracOptimizer
 
@@ -16,12 +18,12 @@ import json
 from pathlib import Path
 import os
 
-BATCH_SIZE = 64
+BATCH_SIZE = 64 * 4
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
 BASE_DIR = "results/output_cifar10_cnn_dg/"
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 150
+NUM_EPOCHS = 3
 VERBOSE = True
 
 def load_dataset():
@@ -81,15 +83,17 @@ def main():
         y_test=y_test,
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
-        continue_training= False 
+        continue_training= False ,
+        batch_size=BATCH_SIZE
     )
     
     D = [
+        (FracOptimizer(learning_rate=0.01,beta=0.5), "FracOptimizer B=0.5"),
+        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
         (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         (tf.keras.optimizers.RMSprop(), "RMSprop"),
-        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):
