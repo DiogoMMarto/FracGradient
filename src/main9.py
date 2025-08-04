@@ -1,7 +1,8 @@
+from sklearn.model_selection import train_test_split
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 import numpy as np
-import h5py
+from scipy.io import loadmat
 # tf.config.run_functions_eagerly(True)
 
 from ciphar10.Pipeline import Pipeline
@@ -31,14 +32,20 @@ import os
 #   8: kernel -> index 8
 #   9: bias -> index 9
 
-DATASET_PATH = "datasets/Happy_datasets/datasets/"
+DATASET_PATH = "datasets/ex3data1.mat"
+BASE_DIR = "results/output_MNIST_4/"
 BATCH_SIZE = 64 * 2
-NUM_CLASSES = 2
+NUM_CLASSES = 10
 DATA_AUGMENTATION = False
-BASE_DIR = "results/output_HappyFace_5/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 100
 VERBOSE = True
+
+def one_hot(y):
+    one_hot = np.zeros((y.shape[0], 10))
+    for i in range(y.shape[0]):
+        one_hot[i][y[i][0]-1] = 1
+    return one_hot
 
 @tf.function
 def alpha_function2(norm_GradCost, beta):
@@ -61,59 +68,28 @@ def alpha_function4(norm_GradCost, beta):
     """
     return 2.0 / ( 1.0 + tf.exp(norm_GradCost * beta))
 
-def one_hot(y):
-    one_hot = np.zeros((y.shape[0], y.max() + 1))
-    for i in range(y.shape[0]):
-        one_hot[i][y[i]] = 1
-    return one_hot
-    
 def load_dataset():
-    # .h5 format on test_happy.h5 and train_happy.h5
-    train_path = Path(DATASET_PATH) / "train_happy.h5"
-    test_path = Path(DATASET_PATH) / "test_happy.h5"
-    with h5py.File(train_path, 'r') as f:
-        X_train: ndarray = f['train_set_x'][:] # type: ignore
-        y_train: ndarray = f['train_set_y'][:]  # type: ignore
-        list_classes: list = f['list_classes'][:]  # type: ignore
-        
-    with h5py.File(test_path, 'r') as f:
-        X_test: ndarray = f['test_set_x'][:]  # type: ignore
-        y_test: ndarray = f['test_set_y'][:]  # type: ignore
-        list_classes_test: list = f['list_classes'][:]  # type: ignore
-        
-    # convert into format that tensorflow can use in cnn
-    
-    y_train = one_hot(y_train)
-    y_test = one_hot(y_test)
-    # check if the classes are the same
-    if not np.array_equal(list_classes, list_classes_test):
-        raise ValueError("The classes in the train and test sets are not the same.")
-
-    return X_train , y_train, X_test, y_test, list_classes
+    # use tensorflow datasets to load the MNIST dataset
+    (X_train, y_train), (X_test, y_test) = datasets.mnist.load_data()
+    X_train = X_train.reshape((X_train.shape[0], 28, 28, 1)).astype('float32') / 255.0
+    X_test = X_test.reshape((X_test.shape[0], 28, 28, 1)).astype('float32') / 255.0
+    y_train = tf.keras.utils.to_categorical(y_train, NUM_CLASSES)
+    y_test = tf.keras.utils.to_categorical(y_test, NUM_CLASSES)
+    labels = np.arange(NUM_CLASSES)
+    print(f"Dataset loaded: {X_train.shape[0]} training samples, {X_test.shape[0]} test samples.")
+    return X_train, y_train, X_test, y_test, labels
 
 def create_model():
     m =  models.Sequential([
-        layers.BatchNormalization(input_shape=(64, 64, 3)),
-        
-        layers.Conv2D(32, (4, 4), padding='same'),
-        layers.MaxPooling2D((4, 4)),
-        layers.Dropout(0.1),
-        
-        layers.Conv2D(64, (4, 4), padding='same'),
-        layers.MaxPooling2D((4, 4)),
-        layers.Dropout(0.1),
-
-        # layers.Conv2D(128, (3, 3), padding='same'),
-        # layers.MaxPooling2D((2, 2)),
-        # layers.Dropout(0.1),
-        
-        # layers.Conv2D(256, (3, 3), padding='same'),
-        # layers.MaxPooling2D((2, 2)),
-        # layers.Dropout(0.1),
-
+        # input 28x28x1
+        layers.InputLayer(input_shape=(28, 28, 1)),
+        layers.Conv2D(6, (5, 5), strides=1, activation='relu', padding="same"),
+        layers.MaxPooling2D((2, 2), strides=2),
+        layers.Conv2D(16, (5, 5), strides=1, activation='relu', padding="valid"),
+        layers.MaxPooling2D((2, 2), strides=2),
+        layers.Conv2D(120, (5, 5), strides=1, activation='relu', padding="valid"),
         layers.Flatten(),
-        layers.Dense(256),
-        layers.Dropout(0.2),
+        layers.Dense(84, activation='relu'),
         layers.Dense(NUM_CLASSES, activation='softmax')
     ])
     m.summary()
