@@ -34,11 +34,11 @@ import os
 
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST_4/"
-BATCH_SIZE = 64 * 2
+BATCH_SIZE = 10
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 100
+NUM_EPOCHS = 10
 VERBOSE = True
 
 def one_hot(y):
@@ -68,6 +68,13 @@ def alpha_function4(norm_GradCost, beta):
     """
     return 2.0 / ( 1.0 + tf.exp(norm_GradCost * beta))
 
+@tf.function
+def alpha_function5(norm_GradCost, beta):
+    """
+    Computes the alpha value based on the norm of the gradient cost.
+    """
+    return 2 - 1.0 / ( 1.0 + (norm_GradCost * beta))
+
 def load_dataset():
     # use tensorflow datasets to load the MNIST dataset
     (X_train, y_train), (X_test, y_test) = datasets.mnist.load_data()
@@ -80,19 +87,29 @@ def load_dataset():
     return X_train, y_train, X_test, y_test, labels
 
 def create_model():
+    activation = 'tanh'
     m =  models.Sequential([
         # input 28x28x1
         layers.InputLayer(input_shape=(28, 28, 1)),
-        layers.Conv2D(6, (5, 5), strides=1, activation='relu', padding="same"),
+        layers.Conv2D(6, (5, 5), strides=1, activation=activation, padding="same"),
         layers.MaxPooling2D((2, 2), strides=2),
-        layers.Conv2D(16, (5, 5), strides=1, activation='relu', padding="valid"),
+        layers.Conv2D(16, (5, 5), strides=1, activation=activation, padding="valid"),
         layers.MaxPooling2D((2, 2), strides=2),
-        layers.Conv2D(120, (5, 5), strides=1, activation='relu', padding="valid"),
+        layers.Conv2D(120, (5, 5), strides=1, activation=activation, padding="valid"),
         layers.Flatten(),
-        layers.Dense(84, activation='relu'),
+        layers.Dense(84, activation=activation),
         layers.Dense(NUM_CLASSES, activation='softmax')
     ])
     m.summary()
+    # initialize the weights to be from -0.1 to 0.1
+    for layer in m.layers:
+        if isinstance(layer, layers.Conv2D) or isinstance(layer, layers.Dense):
+            weights = layer.get_weights()
+            if len(weights) > 0:
+                weights[0] = np.random.uniform(-0.1, 0.1, size=weights[0].shape)
+                if len(weights) > 1:
+                    weights[1] = np.random.uniform(-0.1, 0.1, size=weights[1].shape)
+                layer.set_weights(weights)
     return m
 
 def main():
@@ -120,19 +137,22 @@ def main():
     
     D = [
         # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracOptimizer B=0.5"),
-        (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer B=0.05"),
-        (FracOptimizer(learning_rate=0.03,beta=0.005), "FracOptimizer B=0.005"),
-        (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracOptimizer B=0.005 alpha2"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer B=0.05"),
+        (FracOptimizer(learning_rate=0.1,beta=0.005), "FracOptimizer B=0.005"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.0005,alpha_func=alpha_function5), "FracOptimizer B=0.0005 alpha5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function5), "FracOptimizer B=0.005 alpha5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function5), "FracOptimizer B=0.05 alpha5"),
         # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracOptimizer B=0.01 alpha2"),
         # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracOptimizer B=0.05 alpha3"),          
-        (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer B=0.005 alpha4"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer B=0.005 alpha4"),          
         # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracOptimizer B=0.01"),
         # (tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0001), "SGD 0.001"),
         # (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD 0.1"),
         # (tf.keras.optimizers.SGD(learning_rate=1.0, momentum=0.0001), "SGD 1"),
         # (tf.keras.optimizers.SGD(learning_rate=0.05, momentum=0.0001), "SGD 0.05"),
-        (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
+        # (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
+        (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD Paper"),
         # (tf.keras.optimizers.SGD(learning_rate=0.5, momentum=0.0001), "SGD 0.5"),
         (tf.keras.optimizers.Adam(), "Adam"),
         (tf.keras.optimizers.RMSprop(), "RMSprop"),
