@@ -38,7 +38,7 @@ BATCH_SIZE = 10
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 10
+NUM_EPOCHS = 5
 VERBOSE = True
 
 def one_hot(y):

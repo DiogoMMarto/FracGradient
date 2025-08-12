@@ -23,6 +23,22 @@ class GradNormCollectorCallback(tf.keras.callbacks.Callback):
     def get_history(self):
         """Return the collected grad norms history."""
         return self.final_grad_norms
+    
+    
+class LossPerIterationCallback(tf.keras.callbacks.Callback):
+    """Callback to track loss per iteration."""
+    
+    def __init__(self):
+        super().__init__()
+        self.loss_history = []
+    def on_train_batch_end(self, batch, logs=None):
+        """Store loss at the end of each training batch."""
+        if 'loss' in logs:
+            self.loss_history.append(logs['loss'])
+    def get_history(self):
+        """Return the collected loss history."""
+        return self.loss_history
+        
 # ---- Visualization Functions ----
 def moving_average(values, window=1):
     if window <= 1:
@@ -74,6 +90,29 @@ def plot_gradient_norms(history,
         plt.suptitle("Gradient Norms per Layer")
         plt.tight_layout()
         # plt.show()
+        
+def plot_loss_per_iteration(history,
+                            smooth=1, log_scale=True,
+                            figsize=(10, 6)):
+    """
+    Plot loss per iteration tracked during training.
+    Args:
+        history (list): List of loss values per iteration.
+        smooth (int): Moving average window (default=1, no smoothing).
+        log_scale (bool): Logarithmic y-axis for loss.
+        figsize (tuple): Figure size.
+    """
+    plt.figure(figsize=figsize)
+    smoothed = moving_average(history, smooth)
+    plt.plot(smoothed, label="Loss per Iteration")
+    plt.xlabel("Training Step")
+    plt.ylabel("Loss")
+    if log_scale:
+        plt.yscale("log")
+    plt.title("Loss per Iteration History")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
 
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -227,6 +266,15 @@ class Pipeline:
             history_cost_validation = self.history.get('val_loss', [])
             history_accuracy_validation = self.history.get('val_accuracy', [])
             history_grad_norms = self.history.get('grad_norms', {})
+            history_loss_per_iteration = self.history.get('loss_per_iteration', [])
+            
+            if history_loss_per_iteration:
+                plot_loss_per_iteration(history_loss_per_iteration,
+                                        smooth=1, 
+                                        log_scale=False,
+                                        figsize=(10, 6))
+                plt.savefig(self.output_dir + '/loss_per_iteration.png')
+                plt.close()
 
             plt.figure(figsize=(10, 5))
             plt.plot(history_cost, label='Training Loss')
@@ -315,7 +363,7 @@ class Pipeline:
         if self.continue_training:
             self.load()
         
-        callbacks = [TimePerEpochCallback(),GradNormCollectorCallback()]
+        callbacks = [TimePerEpochCallback(),GradNormCollectorCallback(),LossPerIterationCallback()]
         self.model.compile(**self.compile_kwargs)
         
         if self.data_augmentation:
@@ -349,6 +397,7 @@ class Pipeline:
         self.history = self.history.history
         self.history['time'] = [callback.times for callback in callbacks if isinstance(callback, TimePerEpochCallback)][0]
         self.history['grad_norms'] = [callback.get_history() for callback in callbacks if isinstance(callback, GradNormCollectorCallback)][0]
+        self.history['loss_per_iteration'] = [callback.get_history() for callback in callbacks if isinstance(callback, LossPerIterationCallback)][0]
         os.makedirs(self.output_dir, exist_ok=True)
         self.evaluate()
         self.save()
