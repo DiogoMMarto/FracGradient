@@ -139,7 +139,8 @@ def main():
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
         continue_training= False ,
-        batch_size=BATCH_SIZE
+        batch_size=BATCH_SIZE,
+        dataset_name="HappyFace" 
     )
     
     D = [

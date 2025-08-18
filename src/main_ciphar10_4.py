@@ -77,7 +77,8 @@ def main():
         y_test=y_test,
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
-        continue_training= False 
+        continue_training= False ,
+        dataset_name="CIFAR-10" 
     )
     
     D = [

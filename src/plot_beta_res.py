@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import csv
 
-csv_path = "results/beta_results.csv"
+csv_path = "results/beta_results.txt"
 
 def load_csv():
     with open(csv_path, 'r') as file:
-        reader = csv.reader(file, delimiter=',')
+        reader = csv.reader(file)
         data = list(reader)
     return data
 
@@ -18,7 +18,7 @@ def plot_beta_vs_num_params(data):
     num_params = [int(row[2]) for row in data]
 
     plt.figure(figsize=(10, 6))
-    plt.scatter(betas, num_params, marker='o')
+    plt.scatter(betas, num_params, marker='o' , alpha=0.7)
     plt.title('Beta vs Number of Parameters')
     plt.xlabel('Beta')
     # xlog scale
@@ -36,7 +36,7 @@ def plot_beta_vs_cost(data):
     costs = [float(row[3]) for row in data]
 
     plt.figure(figsize=(10, 6))
-    plt.scatter(betas, costs, marker='o')
+    plt.scatter(betas, costs, marker='o', alpha=0.7)
     plt.title('Beta vs Cost')
     plt.xlabel('Beta')
     plt.xscale('log')

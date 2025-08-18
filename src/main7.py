@@ -117,7 +117,8 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params)
+    dataset_name = "MNIST"
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params,dataset_name)
     
 if __name__ == "__main__":
     main()    

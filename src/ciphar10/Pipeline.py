@@ -163,7 +163,10 @@ class Pipeline:
                  data_augmentation: bool = False,
                  overwrite: bool = False,
                  continue_training: bool = False,
-                 batch_size: int = 32):
+                 batch_size: int = 32,
+                 dataset_name: str = "CIFAR-10"
+                ):
+        self.dataset = dataset_name 
         self.X = X
         self.y = y
         self.model = model
@@ -350,6 +353,17 @@ class Pipeline:
                                     figsize=(10, 6))
                 plt.savefig(self.output_dir + '/gradient_norms_per_layer.png')
                 plt.close()
+                
+        params = self.compile_kwargs.get("optimizer", {}).get_config() if self.compile_kwargs.get("optimizer") else {}
+        Optimizer_name = params.get("name", "Unknown Optimizer")
+        number_of_models_params = sum(np.prod(v.shape) for v in self.model.trainable_variables)
+        cost = history_cost[-1] if history_cost else None
+        print(f"Optimizer: {Optimizer_name}, Number of Parameters: {number_of_models_params}, Final Cost: {cost}, Params: {params}")
+        dataset_name = self.dataset 
+        if "beta" in params:
+            print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
+            with open("results/beta_results.txt", "a") as f:
+                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}    {dataset_name}\n")
   
     def run(self, epochs=100, verbose=False):
         """

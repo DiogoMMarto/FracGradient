@@ -132,7 +132,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params)
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace")
     
 if __name__ == "__main__":
     main()    

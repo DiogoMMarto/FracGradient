@@ -10,7 +10,7 @@ import math
 
 from itertools import product
 
-def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
+def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name):
     betas = []
     costs = []
     
@@ -72,7 +72,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params):
         if "beta" in params:
             print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
             with open("results/beta_results.txt", "a") as f:
-                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}\n")
+                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}    {dataset_name}\n")
             
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        

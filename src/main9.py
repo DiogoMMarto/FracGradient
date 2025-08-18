@@ -38,7 +38,7 @@ BATCH_SIZE = 10
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 5
+NUM_EPOCHS = 1
 VERBOSE = True
 
 def one_hot(y):
@@ -100,7 +100,7 @@ def create_model():
         layers.Dense(84, activation=activation),
         layers.Dense(NUM_CLASSES, activation='softmax')
     ])
-    m.summary()
+    # m.summary()
     # initialize the weights to be from -0.1 to 0.1
     for layer in m.layers:
         if isinstance(layer, layers.Conv2D) or isinstance(layer, layers.Dense):
@@ -132,7 +132,8 @@ def main():
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
         continue_training= False ,
-        batch_size=BATCH_SIZE
+        batch_size=BATCH_SIZE,
+        dataset_name="MNIST"  
     )
     
     D = [
