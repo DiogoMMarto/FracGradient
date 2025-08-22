@@ -7,6 +7,26 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg') # Use Agg backend for matplotlib to avoid GUI issues in headless environments
 
+def get_scores(file_path):
+    """Read classification report from a file and return it as a dictionary."""
+    with open(file_path, 'r') as f:
+        report = f.read()
+    lines = report.split('\n')
+    scores = {}
+    for line in lines:
+        if 'accuracy' in line:
+            accuracy = float(line.split()[-2])
+            scores['accuracy'] = accuracy
+        if "macro avg" in line:
+            parts = line.split()
+            scores['macro avg'] = {
+                'precision': float(parts[2]),
+                'recall': float(parts[3]),
+                'f1-score': float(parts[4]),
+                'support': int(parts[5])
+            }
+    return scores
+
 class GradNormCollectorCallback(tf.keras.callbacks.Callback):
     """Callback that extracts grad norms from XLA-compatible optimizer."""
     
@@ -164,7 +184,8 @@ class Pipeline:
                  overwrite: bool = False,
                  continue_training: bool = False,
                  batch_size: int = 32,
-                 dataset_name: str = "CIFAR-10"
+                 dataset_name: str = "CIFAR-10",
+                 expirement_name: str = "default_experiment"
                 ):
         self.dataset = dataset_name 
         self.X = X
@@ -186,6 +207,7 @@ class Pipeline:
         # else:
         #     self.compile_kwargs["optimizer"] = GradientNormTrackingOptimizer(tf.keras.optimizers.Adam())
         self.batch_size = batch_size
+        self.expirement_name = expirement_name
         
     def save(self):
         """
@@ -361,10 +383,53 @@ class Pipeline:
         print(f"Optimizer: {Optimizer_name}, Number of Parameters: {number_of_models_params}, Final Cost: {cost}, Params: {params}")
         dataset_name = self.dataset 
         if "beta" in params:
-            print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
             with open("results/beta_results.txt", "a") as f:
-                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}    {dataset_name}\n")
-  
+                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}    {cost}    {dataset_name}\n")
+
+    def report_to_json(self):
+        params = self.compile_kwargs.get("optimizer", {}).get_config() if self.compile_kwargs.get("optimizer") else {}
+        Optimizer_name = params.get("name", "Unknown Optimizer")
+        def load_history():
+            if not os.path.exists(self.output_dir + "history.json"):
+                return {}
+            with open(self.output_dir + "history.json", "r") as f:
+                return json.load(f)
+        history = load_history()
+        final_cost = history.get("loss", [None])[-1]
+        time = history.get("time", [])
+        # remove outliers from time
+        n = len(time)
+        mean_time = np.mean(time)
+        std_time = np.std(time)
+        time = [t for t in time if abs(t - mean_time) < 3 * std_time]
+        new_mean_time = np.mean(time)
+        final_time = new_mean_time * n
+        
+        classification_report = get_scores(self.output_dir + "classification_report.txt")
+        test_classification_report = get_scores(self.output_dir + "test_classification_report.txt") 
+        
+        number_of_models_params = sum(np.prod(v.shape) for v in self.model.trainable_variables)
+        
+        with open("results/res.json", "r") as f:
+            res = json.load(f)
+            res = {} if res is None else res
+            betav = params.get('beta', '')
+            res[Optimizer_name + str(betav) + ","+ self.expirement_name] = {
+                "name": self.name,
+                "params": params,
+                "last_cost": final_cost,
+                "dataset": self.dataset,
+                "number_of_models_params": int(number_of_models_params),
+                "expirement_name": self.expirement_name,
+                "optimizer": Optimizer_name,
+                "output_dir": self.output_dir,
+                "time_to_train": final_time,
+                "classification_report": classification_report,
+                "test_classification_report": test_classification_report
+            }
+        with open("results/res.json", "w") as f:
+            json.dump(res, f, indent=4)
+        
     def run(self, epochs=100, verbose=False):
         """
         Trains the model on the provided training data for a specified number of epochs.
@@ -372,6 +437,7 @@ class Pipeline:
         """
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
             print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
+            self.report_to_json()
             return
         
         if self.continue_training:

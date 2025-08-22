@@ -38,7 +38,7 @@ DATA_AUGMENTATION = False
 BASE_DIR = "results/output_HappyFace_5/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 100
-VERBOSE = True
+VERBOSE = False
 
 @tf.function
 def alpha_function2(norm_GradCost, beta):
@@ -140,17 +140,18 @@ def main():
         overwrite=False,
         continue_training= False ,
         batch_size=BATCH_SIZE,
-        dataset_name="HappyFace" 
+        dataset_name="HappyFace" ,
+        expirement_name="HappyFace 5 - CNN"
     )
     
     D = [
         # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracOptimizer B=0.5"),
         (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer B=0.05"),
         (FracOptimizer(learning_rate=0.03,beta=0.005), "FracOptimizer B=0.005"),
-        (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracOptimizer B=0.005 alpha2"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracOptimizer B=0.005 alpha2"),
         # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracOptimizer B=0.01 alpha2"),
         # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracOptimizer B=0.05 alpha3"),          
-        (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer B=0.005 alpha4"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer B=0.005 alpha4"),          
         # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracOptimizer B=0.01"),
         # (tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0001), "SGD 0.001"),
         # (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
@@ -160,7 +161,7 @@ def main():
         (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.5, momentum=0.0001), "SGD 0.5"),
         (tf.keras.optimizers.Adam(), "Adam"),
-        (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        # (tf.keras.optimizers.RMSprop(), "RMSprop"),
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

@@ -69,11 +69,14 @@ def main():
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
         continue_training= False,
-        dataset_name="CIFAR-10" 
+        dataset_name="CIFAR-10" ,
+        expirement_name="CIFAR-10 ResNet34"
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.001), "FracOptimizer B=0.001"),
+        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),
+        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
+        
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         # (tf.keras.optimizers.RMSprop(), "RMSprop"),

@@ -13,7 +13,7 @@ from numpy import ndarray
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_4/"
 NUM_EPOCHS = 2000
-VERBOSE = True
+VERBOSE = False
 ARCHITECTURE = [64, 32]
 
 def one_hot(y):
@@ -92,10 +92,10 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         ( FracOptimizer2, {"learning_rate":0.0002,"beta":0.04}, BASE_DIR + "frac2B05/", "FracGradient"),
         ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGradient V2"),
-        ( AdamOptimizer, {"learning_rate":0.01}, BASE_DIR + "adam/", "Adam Optimizer"),
+        ( AdamOptimizer, {"learning_rate":0.001}, BASE_DIR + "adam/", "Adam Optimizer"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
-        ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
-        ( FracOptimizer4, {'learning_rate': 0.001, 'beta': 0.05}, BASE_DIR + "frac4B05/", "FracGradient V4"),
+        # ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
+        # ( FracOptimizer4, {'learning_rate': 0.001, 'beta': 0.05}, BASE_DIR + "frac4B05/", "FracGradient V4"),
     ]
     
     D2 = gen_grid_search(
@@ -132,7 +132,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace", "HappyFace 4 - 2 hidden layer with relu")
     
 if __name__ == "__main__":
     main()    

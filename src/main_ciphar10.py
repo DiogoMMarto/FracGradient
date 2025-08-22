@@ -82,7 +82,8 @@ def main():
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
         continue_training= False,
-        dataset_name="CIFAR-10" 
+        dataset_name="CIFAR-10" ,
+        expirement_name="CIFAR-10 CNN without Data Augmentation"
     )
     
     D = [

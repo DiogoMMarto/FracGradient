@@ -85,12 +85,13 @@ def main():
         overwrite=False,
         continue_training= False ,
         batch_size=BATCH_SIZE,
-        dataset_name="CIFAR-10" 
+        dataset_name="CIFAR-10" ,
+        expirement_name="CIFAR-10 CNN with Data Augmentation"
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.5), "FracOptimizer B=0.5"),
-        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
+        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracOptimizer B=0.005"),
+        # (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
         (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),

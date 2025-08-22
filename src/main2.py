@@ -13,7 +13,7 @@ from numpy import ndarray
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace/"
 NUM_EPOCHS = 3000
-VERBOSE = True
+VERBOSE = False
 ARCHITECTURE = [25]
 
 def one_hot(y):
@@ -108,7 +108,7 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         ( FracOptimizer2, {"learning_rate":0.1,"beta":0.1}, BASE_DIR + "frac2B01/", "FracGradient"),
-        ( FracOptimizerBStable, {"learning_rate":0.1,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":0.1,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
@@ -147,7 +147,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace","HappyFace 1 - 1 hidden layer")
     
 if __name__ == "__main__":
     main()    

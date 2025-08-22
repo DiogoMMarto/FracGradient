@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 DATASET_PATH = "datasets/ex3data1.mat"
 BASE_DIR = "results/output_MNIST_2/"
 NUM_EPOCHS = 5000
-VERBOSE = True
+VERBOSE = False
 ARCHITECTURE = [6]
 
 def one_hot(y):
@@ -71,7 +71,7 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
-        ( FracOptimizerBStable, {"learning_rate":0.9,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":0.9,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable"),
         # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005/", "FracGradient B Stable 2"),
         # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005_3/", "FracGradient B Stable inv"),
         # ( FracOptimizerBStable, {"learning_rate":0.5,"beta":0.05}, BASE_DIR + "fracBStable005_4/", "FracGradient B Stable sqrt"),
@@ -115,7 +115,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST","MNIST 2 - 1 small hidden layer")
     
 if __name__ == "__main__":
     main()    

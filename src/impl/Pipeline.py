@@ -10,9 +10,30 @@ import math
 
 from itertools import product
 
-def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name):
+def get_scores(file_path):
+    """Read classification report from a file and return it as a dictionary."""
+    with open(file_path, 'r') as f:
+        report = f.read()
+    lines = report.split('\n')
+    scores = {}
+    for line in lines:
+        if 'accuracy' in line:
+            accuracy = float(line.split()[-2])
+            scores['accuracy'] = accuracy
+        if "macro avg" in line:
+            parts = line.split()
+            scores['macro avg'] = {
+                'precision': float(parts[2]),
+                'recall': float(parts[3]),
+                'f1-score': float(parts[4]),
+                'support': int(parts[5])
+            }
+    return scores
+
+def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirement_name):
     betas = []
     costs = []
+    optimzer_names = []
     
     for Optimizer, params, output, name in D:
         params_path = output + "params.json"
@@ -41,6 +62,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name):
     plt.title("Final Cost vs Beta")
     plt.tight_layout()
     # print("Betas:", sorted(betas))
+    # set colors in function of 
     plt.scatter(betas, costs)
     costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
     plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
@@ -66,13 +88,34 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name):
                 best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
     print("Best for each Optimizer class:")
     for Optimizer_name, (Optimizer, params, output, name, cost) in best_per_optimizer.items():
+        history = json.load(open(output + "history.json"))
         params = {k: v for k, v in params}
+        classification_report = get_scores(output + "classification_report.txt")
+        test_classification_report = get_scores(output + "test_classification_report.txt") if os.path.exists(output + "test_classification_report.txt") else None
         print(f"{Optimizer_name}: {name} with cost {cost:.4f} at {output}")
         print(f"Parameters: {params}")
         if "beta" in params:
             print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
             with open("results/beta_results.txt", "a") as f:
                 f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}    {dataset_name}\n")
+        with open("results/res.json", "r") as f:
+            res = json.load(f)
+            res = {} if res is None else res
+            res[Optimizer_name+","+expirement_name] = {
+                "name": name,
+                "params": params,
+                "last_cost": cost,
+                "dataset": dataset_name,
+                "number_of_models_params": number_of_models_params,
+                "expirement_name": expirement_name,
+                "output_dir": output,
+                "optimizer": Optimizer_name,
+                "time_to_train": history["time"][-1],
+                "classification_report": classification_report,
+                "test_classification_report": test_classification_report
+            }
+        with open("results/res.json", "w") as f:
+            json.dump(res, f, indent=4)
             
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        

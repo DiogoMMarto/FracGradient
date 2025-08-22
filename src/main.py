@@ -72,7 +72,7 @@ def main():
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracBStable05/", "FracGradient B Stable"),
-        ( FracOptimizerBStable, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracBStable001/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracBStable001/", "FracGradient B Stable"),
         # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracBStable001/", "FracGradient B Stable 0.01"),
         # ( FracOptimizerBStable, {"learning_rate":1,"beta":0.005}, BASE_DIR + "fracBStable0005/", "FracGradient B Stable 0.005"),
         # ( FracOptimizerBStable, {"learning_rate":1,"beta":5}, BASE_DIR + "fracBStable5/", "FracGradient B Stable 5"),
@@ -111,7 +111,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST","MNIST 1 - 1 hidden layer")
     
 if __name__ == "__main__":
     main()    

@@ -38,8 +38,8 @@ BATCH_SIZE = 10
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
 os.makedirs(BASE_DIR, exist_ok=True)
-NUM_EPOCHS = 1
-VERBOSE = True
+NUM_EPOCHS = 5
+VERBOSE = False
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))
@@ -133,7 +133,8 @@ def main():
         overwrite=False,
         continue_training= False ,
         batch_size=BATCH_SIZE,
-        dataset_name="MNIST"  
+        dataset_name="MNIST"  ,
+        expirement_name="MNIST 4 - CNN"
     )
     
     D = [
@@ -153,7 +154,7 @@ def main():
         # (tf.keras.optimizers.SGD(learning_rate=1.0, momentum=0.0001), "SGD 1"),
         # (tf.keras.optimizers.SGD(learning_rate=0.05, momentum=0.0001), "SGD 0.05"),
         # (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
-        (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD Paper"),
+        (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.5, momentum=0.0001), "SGD 0.5"),
         (tf.keras.optimizers.Adam(), "Adam"),
         (tf.keras.optimizers.RMSprop(), "RMSprop"),
