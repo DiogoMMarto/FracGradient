@@ -414,7 +414,8 @@ class Pipeline:
             res = json.load(f)
             res = {} if res is None else res
             betav = params.get('beta', '')
-            res[Optimizer_name + str(betav) + ","+ self.expirement_name] = {
+            res[self.expirement_name] = res.get(self.expirement_name, {})
+            res[self.expirement_name][Optimizer_name + str(betav)]= {
                 "name": self.name,
                 "params": params,
                 "last_cost": final_cost,

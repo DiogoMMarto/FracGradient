@@ -101,7 +101,8 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         with open("results/res.json", "r") as f:
             res = json.load(f)
             res = {} if res is None else res
-            res[Optimizer_name+","+expirement_name] = {
+            res[expirement_name] = res.get(expirement_name, {})
+            res[expirement_name][Optimizer_name] = {
                 "name": name,
                 "params": params,
                 "last_cost": cost,
