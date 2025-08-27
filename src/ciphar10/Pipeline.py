@@ -5,7 +5,83 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 import matplotlib
+import pathlib
 matplotlib.use('Agg') # Use Agg backend for matplotlib to avoid GUI issues in headless environments
+
+def end_graphs(BASE_DIR,D,experiment_name):
+    historys = {}
+    for Optimizer, Name_Optimizer in D:
+        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
+        history_path = pathlib.Path(output_dir) / "history.json"
+        if history_path.exists():
+            with open(history_path, 'r') as f:
+                history = json.load(f)
+            historys[Name_Optimizer] = history
+        else:
+            print(f"History file not found for {Name_Optimizer} at {history_path}")
+            
+    # plot the cost function history for each model in the same plot
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+    plt.title("Cost function over iterations - " + experiment_name)
+    plt.tight_layout()
+    
+    for Name_Optimizer, history in historys.items():
+        if 'loss_per_iteration' not in history:
+            continue
+        plt.plot(history['loss_per_iteration'], label=Name_Optimizer)
+    plt.legend()
+    plt.savefig(BASE_DIR + "cost_history_iterations.png")
+    print(f"Cost history per iteration saved to {BASE_DIR}cost_history_iterations.png")
+    
+    #plot the accuracy function history for each model in the same plot
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Iterations")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy over Epochs - " + experiment_name)
+    plt.tight_layout()
+    for Name_Optimizer, history in historys.items():
+        plt.plot(history['accuracy'], label=Name_Optimizer)
+    plt.legend()
+    plt.savefig(BASE_DIR + "accuracy_history_epochs.png")
+    print(f"Accuracy history per epochs saved to {BASE_DIR}accuracy_history_epochs.png")
+    
+    #plot the loss per epoch for each model in the same plot
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Loss over Epochs - " + experiment_name)
+    plt.tight_layout()
+    for Name_Optimizer, history in historys.items():
+        plt.plot(history['loss'], label=Name_Optimizer)
+    plt.legend()
+    plt.savefig(BASE_DIR + "loss_history_epochs.png")
+    print(f"Loss history per epochs saved to {BASE_DIR}loss_history_epochs.png")
+    
+    #plot the test loss per epoch for each model in the same plot
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Epochs")
+    plt.ylabel("Test Loss")
+    plt.title("Test Loss over Epochs - " + experiment_name)
+    plt.tight_layout()
+    for Name_Optimizer, history in historys.items():
+        plt.plot(history['val_loss'], label=Name_Optimizer)
+    plt.legend()
+    plt.savefig(BASE_DIR + "val_loss_history_epochs.png")
+    print(f"Validation Loss history per epochs saved to {BASE_DIR}val_loss_history_epochs.png")
+    
+    #plot the test accuracy per epoch for each model in the same plot
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Epochs")
+    plt.ylabel("Test Accuracy")
+    plt.title("Test Accuracy over Epochs - " + experiment_name)
+    plt.tight_layout()
+    for Name_Optimizer, history in historys.items():
+        plt.plot(history['val_accuracy'], label=Name_Optimizer)
+    plt.legend()
+    plt.savefig(BASE_DIR + "val_accuracy_history_epochs.png")
+    print(f"Validation Accuracy history per epochs saved to {BASE_DIR}val_accuracy_history_epochs.png")
 
 def get_scores(file_path):
     """Read classification report from a file and return it as a dictionary."""

@@ -2,7 +2,7 @@ from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 # tf.config.run_functions_eagerly(True)
 
-from ciphar10.Pipeline import Pipeline
+from ciphar10.Pipeline import Pipeline, end_graphs
 from ciphar10.Optimizer import FracOptimizer
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -25,6 +25,7 @@ BASE_DIR = "results/output_cifar10_cnn_dg/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True
+EXPIREMENT_NAME = "CIFAR-10 CNN with Data Augmentation"
 
 def load_dataset():
     (X_train, y_train), (X_test,y_test) = datasets.cifar10.load_data()
@@ -86,7 +87,7 @@ def main():
         continue_training= False ,
         batch_size=BATCH_SIZE,
         dataset_name="CIFAR-10" ,
-        expirement_name="CIFAR-10 CNN with Data Augmentation"
+        expirement_name=EXPIREMENT_NAME,
     )
     
     D = [
@@ -107,121 +108,7 @@ def main():
     
     print("All pipelines completed.")
     
-    # open all model directories
-    # load the cost function history from each model
-    # plot the cost function history for each model in the same plot
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Loss function history")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            plt.plot(history['loss'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "loss_history.png")
-    print(f"Loss history saved to {BASE_DIR}loss_history.png")
-    
-    # similar plot but include x = time and y = cost
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Time (seconds)")
-    plt.ylabel("Loss")
-    plt.title("Loss function history over time")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            cumulative_time = [sum(history['time'][:i+1]) for i in range(len(history['time']))]
-            plt.plot(cumulative_time, history['loss'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "loss_history_time.png")
-    print(f"Loss history over time saved to {BASE_DIR}loss_history_time.png")
-    
-    # for cost function history, plot the cost function history for each model in the same plot
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Epoch")
-    plt.ylabel("Cost")
-    plt.title("Cost function history")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            plt.plot(history['loss'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "cost_history.png")
-    print(f"Cost history saved to {BASE_DIR}cost_history.png")
-    
-    # for validation cost function history, plot the validation cost function history for each model in the same plot
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Epoch")
-    plt.ylabel("Validation Cost")
-    plt.title("Validation Cost function history")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            plt.plot(history['val_loss'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "val_cost_history.png")
-    print(f"Validation cost history saved to {BASE_DIR}val_cost_history.png")
-    
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Epoch")
-    plt.ylabel("ValidationAccuracy")
-    plt.title("Validation Accuracy history")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            plt.plot(history['val_accuracy'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "val_accuracy_history.png")
-    print(f"Validation accuracy history saved to {BASE_DIR}val_accuracy_history.png")
-    
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Time (seconds)")
-    plt.ylabel("Loss")
-    plt.title("Loss function history over time")
-    plt.tight_layout()
-    for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
-        history_path = Path(output_dir) / "history.json"
-        if history_path.exists():
-            with open(history_path, 'r') as f:
-                history = json.load(f)
-            cumulative_time = [sum(history['time'][:i+1]) for i in range(len(history['time']))]
-            plt.plot(cumulative_time, history['val_loss'], label=Name_Optimizer)
-        else:
-            print(f"History file not found for {Name_Optimizer} at {history_path}")
-    plt.legend()
-    plt.savefig(BASE_DIR + "val_loss_history_time.png")
-    print(f"Loss history over time saved to {BASE_DIR}val_loss_history_time.png")
+    end_graphs(BASE_DIR,D,EXPIREMENT_NAME)
     
 if __name__ == "__main__":
     main()    

@@ -124,7 +124,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.figure(figsize=(12, 8))
     plt.xlabel("Iteration")
     plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
+    plt.title("Cost function over Iterations - " + str(expirement_name))
     plt.tight_layout()
     y_heigth = float('inf')
     m = float('inf')
@@ -138,7 +138,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         if history["cost"][-1] < m:
             m = history["cost"][-1]
     plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
-    plt.legend()
+    plt.legend(loc='upper right')
     plt.savefig(BASE_DIR + "history.png")
     
     # similar plot but include x = time and y = cost
