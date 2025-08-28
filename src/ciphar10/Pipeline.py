@@ -32,8 +32,19 @@ def end_graphs(BASE_DIR,D,experiment_name):
             continue
         plt.plot(history['loss_per_iteration'], label=Name_Optimizer)
     plt.legend()
+    
+    # get the cost at iteration 1000 and get the max then set max y axis to 1.1 that
+    max_cost = 0
+    for Name_Optimizer, history in historys.items():
+        if 'loss_per_iteration' not in history:
+            continue
+        if len(history['loss_per_iteration']) >= 100:
+            cost_at_1000 = history['loss_per_iteration'][99]
+            if cost_at_1000 > max_cost:
+                max_cost = cost_at_1000
+    print(f"Max cost at iteration 1000: {max_cost}")
+    plt.ylim(0, max_cost * 1.1)
     plt.savefig(BASE_DIR + "cost_history_iterations.png")
-    print(f"Cost history per iteration saved to {BASE_DIR}cost_history_iterations.png")
     
     #plot the accuracy function history for each model in the same plot
     plt.figure(figsize=(12, 8))
