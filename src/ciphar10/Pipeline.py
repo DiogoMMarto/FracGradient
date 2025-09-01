@@ -469,9 +469,6 @@ class Pipeline:
         cost = history_cost[-1] if history_cost else None
         print(f"Optimizer: {Optimizer_name}, Number of Parameters: {number_of_models_params}, Final Cost: {cost}, Params: {params}")
         dataset_name = self.dataset 
-        if "beta" in params:
-            with open("results/beta_results.txt", "a") as f:
-                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}    {cost}    {dataset_name}\n")
 
     def report_to_json(self):
         params = self.compile_kwargs.get("optimizer", {}).get_config() if self.compile_kwargs.get("optimizer") else {}

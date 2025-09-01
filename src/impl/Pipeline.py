@@ -96,8 +96,6 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         print(f"Parameters: {params}")
         if "beta" in params:
             print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
-            with open("results/beta_results.txt", "a") as f:
-                f.write(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}    {dataset_name}\n")
         with open("results/res.json", "r") as f:
             res = json.load(f)
             res = {} if res is None else res

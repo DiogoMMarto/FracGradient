@@ -1,3 +1,28 @@
+"""
+MNIST 4 – Custom CNN (Keras/TensorFlow)
+
+Trains a LeNet-style CNN on the MNIST dataset and compares different optimizers,
+including the fractional FracOptimizer. Each optimizer is run through a shared
+Pipeline, and results/plots are saved under `results/output_MNIST_4_custom_cnn/`.
+
+What this script does
+- Loads MNIST from `tf.keras.datasets` and normalizes pixel values.
+- Builds a CNN architecture similar to LeNet-5 with tanh activations:
+  Conv → Pool → Conv → Pool → Conv → Dense(84) → Softmax(10).
+- Initializes Conv/Dense weights uniformly in [-0.1, 0.1] for reproducibility.
+- Runs training with the optimizers listed in `D` and aggregates results via `end_graphs`.
+
+How to customize
+- Choose optimizers: comment/uncomment entries in the `D` list to include/exclude them.
+  (Examples include FracOptimizer with various β, SGD at different learning rates, etc.)
+- Experiment with α(N): pass one of the alpha functions into FracOptimizer via `alpha_func=...`.
+- Modify training: adjust `NUM_EPOCHS`, `BATCH_SIZE`, learning rates, and β values.
+- Output: change `BASE_DIR` and `EXPERIMENT_NAME` to save results in a different folder.
+
+Notes
+- Uses batch size = 10 and trains for 5 epochs by default (as in the original experiment setup).
+- Labels are one-hot encoded with 10 classes.
+"""
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
@@ -16,9 +41,6 @@ if gpus:
 else:
     print("No GPU found, using CPU.")
 
-import matplotlib.pyplot as plt
-import json
-from pathlib import Path
 import os
 
 #   0: gamma -> index 0

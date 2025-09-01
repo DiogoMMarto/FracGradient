@@ -1,3 +1,13 @@
+"""
+This script trains a MobileNetV2 on the CIFAR-10 dataset (with data augmentation) 
+using different optimizers (FracOptimizer, SGD, Adam). 
+It runs each optimizer through a common training pipeline and saves results/plots.  
+
+To customize: 
+- Comment/uncomment optimizers in the `D` list to choose which ones to include in the experiment.
+- Adjust constants (e.g., NUM_EPOCHS, BATCH_SIZE, learning_rate, beta) to modify training behavior.
+- Results are saved under `results/output_cifar10_mobilenetv2_data_augmentation/`.
+"""
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 from ciphar10.Pipeline import Pipeline, end_graphs
@@ -11,15 +21,12 @@ if gpus:
 else:
     print("No GPU found, using CPU.")
 
-import matplotlib.pyplot as plt
-import json
-from pathlib import Path
 import os
 
 BATCH_SIZE = 128
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
-BASE_DIR = "results/output_cifar10_mobilnenetv2_data_augmentation/"
+BASE_DIR = "results/output_cifar10_mobilenetv2_data_augmentation/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True

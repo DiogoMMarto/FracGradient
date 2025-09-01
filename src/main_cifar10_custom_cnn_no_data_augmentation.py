@@ -1,3 +1,13 @@
+"""
+This script trains a custom CNN on the CIFAR-10 dataset (without data augmentation) 
+using different optimizers (FracOptimizer, SGD, Adam, RMSprop). 
+It runs each optimizer through a common training pipeline and saves results/plots.  
+
+To customize: 
+- Comment/uncomment optimizers in the `D` list to choose which ones to include in the experiment.
+- Adjust constants (e.g., NUM_EPOCHS, BATCH_SIZE, learning_rate, beta) to modify training behavior.
+- Results are saved under `results/output_cifar10_custom_cnn_no_data_augmentation/`.
+"""
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 from ciphar10.Pipeline import Pipeline, end_graphs
@@ -11,9 +21,6 @@ if gpus:
 else:
     print("No GPU found, using CPU.")
 
-import matplotlib.pyplot as plt
-import json
-from pathlib import Path
 import os
 
 BATCH_SIZE = 64

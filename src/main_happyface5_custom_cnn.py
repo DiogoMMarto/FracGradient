@@ -1,8 +1,33 @@
+"""
+HappyFace 5 – CNN (Keras/TensorFlow)
+
+Trains a small CNN on the HappyFace dataset and compares multiple
+optimizers, including the fractional FracOptimizer. Each optimizer is run through
+a  Pipeline and the script saves metrics/plots to `results/output_HappyFace_5_custom_cnn/`.
+
+What this script does
+- Selects the first visible GPU if available (falls back to CPU).
+- Loads train/test from `datasets/Happy_datasets/datasets/*.h5` and one-hot encodes labels.
+- Builds a lightweight CNN (BatchNorm → Conv/Pool/Dropout ×2 → Flatten → Dense).
+- Trains with the optimizers listed in `D`, then aggregates results via `end_graphs`.
+
+How to customize
+- Choose optimizers: comment/uncomment entries in `D` to include them in the run.
+- Fractional α(N) schedules: try `alpha_function2/3/4` by passing `alpha_func=...`
+  when constructing `FracOptimizer`.
+- Hyperparameters: tweak `BATCH_SIZE`, `NUM_EPOCHS`, learning rates, and `beta`.
+- Data augmentation: toggle `DATA_AUGMENTATION` (currently False).
+- Output location: change `BASE_DIR`.
+
+Notes
+- The label space is 2 classes (`NUM_CLASSES = 2`).
+- If you modify the dataset loader to reshape images for the CNN, ensure the model
+  `input_shape` matches (e.g., `(64, 64, 3)`).
+"""
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 import numpy as np
 import h5py
-# tf.config.run_functions_eagerly(True)
 
 from ciphar10.Pipeline import Pipeline, end_graphs
 from ciphar10.Optimizer import FracOptimizer
@@ -15,8 +40,6 @@ if gpus:
 else:
     print("No GPU found, using CPU.")
 
-import matplotlib.pyplot as plt
-import json
 from pathlib import Path
 import os
 

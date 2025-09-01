@@ -1,3 +1,22 @@
+"""
+This script trains and evaluates a feedforward neural network on the MNIST dataset 
+with a single hidden layer of size 25. It supports multiple optimizers, 
+including classical, adaptive, and several fractional variants.
+
+Main features:
+- Loads and preprocesses the MNIST dataset (flatten images, one-hot encode labels).
+- Defines a neural network architecture and cost function with L2 regularization.
+- Runs training pipelines for different optimizers, saving results under `results/output_MNIST_2_1_hidden_layer_6/`.
+- Supports grid search (`gen_grid_search`) to automatically explore optimizer hyperparameters.
+- Can run pipelines sequentially or in parallel with ThreadPoolExecutor. 
+  ThreadPoolExecutor has a perfomance overhead, so it should be used during hyperparameter search only.
+
+To customize:
+- Comment/uncomment entries in the `D` list to include/exclude specific optimizers.
+- Modify `ARCHITECTURE` to change the hidden layer sizes (currently [25]).
+- Adjust `NUM_EPOCHS`, `learning_rate`, `beta`, and other optimizer parameters for experiments.
+- Switch `if False:` → `if True:` to enable parallel training with multiple threads. (line 116)
+"""
 from impl.Pipeline import Pipeline , gen_grid_search , end_pipeline_graphs
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracTrue, FracOptimizerBStable
@@ -5,8 +24,6 @@ from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , Activatio
 from scipy.io import loadmat
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
-import matplotlib.pyplot as plt
-import json
 from sklearn.model_selection import train_test_split
 
 DATASET_PATH = "datasets/ex3data1.mat"
