@@ -38,7 +38,7 @@ DATA_AUGMENTATION = False
 BASE_DIR = "results/output_HappyFace_5/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 100
-VERBOSE = False
+VERBOSE = True
 EXPERIMENT_NAME = "HappyFace 5 - CNN"
 
 @tf.function
@@ -162,7 +162,7 @@ def main():
         (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.5, momentum=0.0001), "SGD 0.5"),
         (tf.keras.optimizers.Adam(), "Adam"),
-        # (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        (tf.keras.optimizers.RMSprop(), "RMSprop"),
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

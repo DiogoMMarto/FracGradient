@@ -148,7 +148,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.title("Cost function using Gradient Descent")
     plt.tight_layout()
     y_heigth = float('inf')
-    S = 10
+    S = 250
     m = float('inf')
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))

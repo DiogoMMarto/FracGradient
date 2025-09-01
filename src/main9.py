@@ -101,7 +101,7 @@ def create_model():
         layers.Dense(84, activation=activation),
         layers.Dense(NUM_CLASSES, activation='softmax')
     ])
-    # m.summary()
+    m.summary()
     # initialize the weights to be from -0.1 to 0.1
     for layer in m.layers:
         if isinstance(layer, layers.Conv2D) or isinstance(layer, layers.Dense):

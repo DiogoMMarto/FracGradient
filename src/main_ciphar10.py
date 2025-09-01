@@ -38,7 +38,7 @@ def load_dataset():
     return X_train, y_train, X_test, y_test, datasets.cifar10.load_data()[0][1].tolist()
 
 def create_model():
-    return models.Sequential([
+    model = models.Sequential([
         layers.BatchNormalization(input_shape=(32, 32, 3)),
         
         layers.Conv2D(32, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
@@ -62,6 +62,8 @@ def create_model():
         layers.Dropout(0.5),
         layers.Dense(10, activation='softmax', kernel_regularizer=tf.keras.regularizers.l2(0.001))
     ])
+    model.summary()
+    return model
 
 def main():
     # Load dataset

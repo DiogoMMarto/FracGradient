@@ -116,7 +116,7 @@ class FracOptimizer(Optimizer):
                 norm_grad = tf.norm(prev_grad)
                 alpha = self.alpha_func(norm_grad, self.beta)
                 
-                # self._store_grad_norm(variable_index, alpha) #    FOR TRACKING GRAD NORM
+                self._store_grad_norm(variable_index, alpha) #    FOR TRACKING GRAD NORM
 
                 diff = tf.abs(variable - prev_weight)
         

@@ -67,7 +67,7 @@ def main():
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.005}, BASE_DIR + "frac3B0005/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":5}, BASE_DIR + "frac3B5/"),
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
-        # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
+        ( FracOptimizer2, {"learning_rate":1,"beta":1}, BASE_DIR + "frac2B0/", "FracGradient"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/", "FracGradient"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":5}, BASE_DIR + "frac2B5/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
