@@ -1,3 +1,10 @@
+"""
+This script runs all main*.py files in the specified directory using the specified Python interpreter.
+
+Example usage:
+    python3 src\run_all.py python3
+    
+"""
 import pathlib
 import subprocess
 RUN_DIR = "src/"
