@@ -19,7 +19,7 @@ import os
 BATCH_SIZE = 128
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
-BASE_DIR = "results/output_cifar10_mnet_dg/"
+BASE_DIR = "results/output_cifar10_mobilnenetv2_data_augmentation/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True

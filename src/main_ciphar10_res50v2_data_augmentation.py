@@ -16,14 +16,14 @@ import json
 from pathlib import Path
 import os
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 NUM_CLASSES = 10
-DATA_AUGMENTATION = False
-BASE_DIR = "results/output_cifar10_cnn_ndg/"
+DATA_AUGMENTATION = True
+BASE_DIR = "results/output_cifar10_res50v2_data_augmentation/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True
-EXPIREMENT_NAME = "CIFAR-10 CNN without Data Augmentation"
+EXPERIMENT_NAME = "CIFAR-10 ResNet50V2 with Data Augmentation"
 
 def load_dataset():
     (X_train, y_train), (X_test,y_test) = datasets.cifar10.load_data()
@@ -38,33 +38,18 @@ def load_dataset():
     return X_train, y_train, X_test, y_test, datasets.cifar10.load_data()[0][1].tolist()
 
 def create_model():
-    model = models.Sequential([
-        layers.BatchNormalization(input_shape=(32, 32, 3)),
-        
-        layers.Conv2D(32, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
-        
-        layers.Conv2D(64, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
-
-        layers.Conv2D(128, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
-        
-        layers.Conv2D(256, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
-
-        layers.Flatten(),
-        layers.Dense(512, kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.Dropout(0.5),
-        layers.Dense(10, activation='softmax', kernel_regularizer=tf.keras.regularizers.l2(0.001))
-    ])
+    # use ciphar10 ResNet34 model
+    model = tf.keras.applications.ResNet50V2(
+        include_top=True,
+        weights=None,
+        input_shape=(32,32,3),
+        pooling=None,
+        classes=10,
+        classifier_activation='softmax'
+    )
     model.summary()
     return model
-
+    
 def main():
     # Load dataset
     X, y, X_test, y_test, labels = load_dataset()
@@ -86,15 +71,17 @@ def main():
         overwrite=False,
         continue_training= False,
         dataset_name="CIFAR-10" ,
-        expirement_name=EXPIREMENT_NAME,
+        expirement_name=EXPERIMENT_NAME,
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
+        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),
+        # (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
+        
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
-        (tf.keras.optimizers.RMSprop(), "RMSprop"),
-        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
+        # (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracOptimizer B=0.005"),     
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):
@@ -106,7 +93,7 @@ def main():
     
     print("All pipelines completed.")
     
-    end_graphs(BASE_DIR,D,EXPIREMENT_NAME)
+    end_graphs(BASE_DIR,D,EXPERIMENT_NAME)
     
 if __name__ == "__main__":
     main()    

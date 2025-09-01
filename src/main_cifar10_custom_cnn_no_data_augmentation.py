@@ -1,7 +1,5 @@
 from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
-# tf.config.run_functions_eagerly(True)
-
 from ciphar10.Pipeline import Pipeline, end_graphs
 from ciphar10.Optimizer import FracOptimizer
 
@@ -18,14 +16,14 @@ import json
 from pathlib import Path
 import os
 
-BATCH_SIZE = 64 * 4
+BATCH_SIZE = 64
 NUM_CLASSES = 10
-DATA_AUGMENTATION = True
-BASE_DIR = "results/output_cifar10_cnn_dg/"
+DATA_AUGMENTATION = False
+BASE_DIR = "results/output_cifar10_custom_cnn_no_data_augmentation/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True
-EXPIREMENT_NAME = "CIFAR-10 CNN with Data Augmentation"
+EXPIREMENT_NAME = "CIFAR-10 CNN without Data Augmentation"
 
 def load_dataset():
     (X_train, y_train), (X_test,y_test) = datasets.cifar10.load_data()
@@ -40,30 +38,32 @@ def load_dataset():
     return X_train, y_train, X_test, y_test, datasets.cifar10.load_data()[0][1].tolist()
 
 def create_model():
-    return models.Sequential([
+    model = models.Sequential([
         layers.BatchNormalization(input_shape=(32, 32, 3)),
         
-        layers.Conv2D(32, (3, 3), padding='same'),
+        layers.Conv2D(32, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.1),
+        layers.Dropout(0.2),
         
-        layers.Conv2D(64, (3, 3), padding='same'),
+        layers.Conv2D(64, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.1),
+        layers.Dropout(0.2),
 
-        layers.Conv2D(128, (3, 3), padding='same'),
+        layers.Conv2D(128, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.1),
+        layers.Dropout(0.2),
         
-        layers.Conv2D(256, (3, 3), padding='same'),
+        layers.Conv2D(256, (3, 3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.1),
+        layers.Dropout(0.2),
 
         layers.Flatten(),
-        layers.Dense(512),
-        layers.Dropout(0.2),
-        layers.Dense(10, activation='softmax')
+        layers.Dense(512, kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        layers.Dropout(0.5),
+        layers.Dense(10, activation='softmax', kernel_regularizer=tf.keras.regularizers.l2(0.001))
     ])
+    model.summary()
+    return model
 
 def main():
     # Load dataset
@@ -84,19 +84,17 @@ def main():
         y_test=y_test,
         data_augmentation=DATA_AUGMENTATION,
         overwrite=False,
-        continue_training= False ,
-        batch_size=BATCH_SIZE,
+        continue_training= False,
         dataset_name="CIFAR-10" ,
         expirement_name=EXPIREMENT_NAME,
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracOptimizer B=0.005"),
-        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
         (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
-        # (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

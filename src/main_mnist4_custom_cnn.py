@@ -33,7 +33,7 @@ import os
 #   9: bias -> index 9
 
 DATASET_PATH = "datasets/ex3data1.mat"
-BASE_DIR = "results/output_MNIST_4/"
+BASE_DIR = "results/output_MNIST_4_custom_cnn/"
 BATCH_SIZE = 10
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
