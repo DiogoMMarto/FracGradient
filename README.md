@@ -8,6 +8,7 @@ The repository is organized as follows:
 ```
 .
 ├── LICENSE # Project license
+├── requirements.txt # Python dependencies
 ├── README.md # Project documentation (this file)
 ├── datasets/ # Input datasets
 │ ├── Happy_datasets # HappyFace dataset
@@ -36,6 +37,15 @@ The repository is organized as follows:
 Would you like me to make the **experiment naming conventions** (like `main_mnist3_2_hidden_layer_32_16.py`) clearer in the README (e.g., a short legend explaining what each part of the filename means)?
 
 ## Running Experiments
+
+### Prerequisites
+1. Install Python 3.6 or higher.
+2. Install required packages:
+```bash
+pip install -r requirements.txt
+```
+
+### Executing Experiments
 
 Example command to run one experiment:
 
