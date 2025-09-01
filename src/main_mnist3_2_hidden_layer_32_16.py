@@ -10,7 +10,7 @@ import json
 from sklearn.model_selection import train_test_split
 
 DATASET_PATH = "datasets/ex3data1.mat"
-BASE_DIR = "results/output_MNIST_3/"
+BASE_DIR = "results/output_MNIST_3_2_hidden_layer_32_16/"
 NUM_EPOCHS = 3000
 VERBOSE = False
 ARCHITECTURE = [32,16]

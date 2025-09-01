@@ -19,22 +19,7 @@ def one_hot(y):
     for i in range(y.shape[0]):
         one_hot[i][y[i]] = 1
     return one_hot
-
-# def load_dataset():
-#     # labels is the directory names in DATASET_PATH
-#     labels = [d.name for d in os.scandir(DATASET_PATH) if d.is_dir()]
-#     labels_map = {label: i for i, label in enumerate(labels)}
-#     images = []
-#     labels_list = []
-#     # open each directory in DATASET_PATH and load the images png
-#     for label in labels:
-#         label_path = os.path.join(DATASET_PATH, label)
-#         for img_path in glob.glob(os.path.join(label_path, "*.png")):
-#             img = plt.imread(img_path)
-#             images.append(img.flatten())
-#             labels_list.append(int(labels_map[label]))
-#     return np.array(images), np.array(labels_list) , labels_map
-    
+  
 def load_dataset():
     # .h5 format on test_happy.h5 and train_happy.h5
     train_path = Path(DATASET_PATH) / "train_happy.h5"

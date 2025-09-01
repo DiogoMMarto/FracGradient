@@ -1,7 +1,7 @@
-from impl.Pipeline import Pipeline , gen_grid_search , end_pipeline_graphs
+from impl.Pipeline import Pipeline , gen_grid_search, end_pipeline_graphs
 from impl.NN import NeuralNetwork
-from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, FracOptimizerBStable
-from impl.CostFunctions import BinaryCrossEntropy , L2Regularization , ActivationFunction
+from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer, FracTrue , MomentumOptimizer , FracOptimizer , FracOptimizer2 , AdamOptimizer , FracAdap , Frac3Optimizer, Frac3Adap, FracOptimizerBStable , FracOptimizer4
+from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
@@ -11,10 +11,10 @@ import h5py
 from numpy import ndarray
 
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
-BASE_DIR = "results/output_HappyFace_2_1_hidden_layer_64/"
-NUM_EPOCHS = 3000
+BASE_DIR = "results/output_HappyFace_4_2_hidden_layer_64_32_relu/"
+NUM_EPOCHS = 2000
 VERBOSE = False
-ARCHITECTURE = [64]
+ARCHITECTURE = [64, 32]
 
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], y.max() + 1))
@@ -61,10 +61,7 @@ def main():
             y.shape[1], 
             BinaryCrossEntropy(
                 regularization=L2Regularization(0.1),
-                activation_function_names=[
-                    "sigmoid",
-                    "sigmoid",
-                ]
+                activation_function_names=["relu","relu","sigmoid"]
             ), 
             Optimizer(**params)
         ),
@@ -74,38 +71,39 @@ def main():
     )
     
     D = [
-        ( ClassicOptimizer, {"learning_rate":0.01}, BASE_DIR + "classical_2/" , "Gradient Descent"),
-        ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, BASE_DIR + "adaptive/", "Adaptive Learning Rate"),
+        ( ClassicOptimizer, {"learning_rate":0.0001}, BASE_DIR + "classical_2/" , "Gradient Descent"),
+        ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":0.001}, BASE_DIR + "adaptive/", "Adaptive Learning Rate"),
         # ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, BASE_DIR + "momentum/"),
-        # ( FracOptimizer, {"learning_rate":1}, BASE_DIR + "frac/"),
+        # ( FracOptimizer, {"learning_rate":0.001}, BASE_DIR + "frac/", "Fractional Gradient Descent"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.1}, BASE_DIR + "fracB01/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.01}, BASE_DIR + "fracB001/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.001}, BASE_DIR + "fracB0001/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":10}, BASE_DIR + "fracB10/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracB05/"),
-        ( FracAdap, {"learning_rate":1,"beta":1}, BASE_DIR + "fracAdapB1/" , "FracGradient V2 Adaptive"),
+        ( FracAdap, {"learning_rate":0.01,"beta":0.01}, BASE_DIR + "fracAdapB001/" , "FracGradient V2 Adaptive"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "frac3B05/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.05}, BASE_DIR + "frac3B005/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac3B01/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.005}, BASE_DIR + "frac3B0005/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":5}, BASE_DIR + "frac3B5/"),
-        # ( Frac3Optimizer, {"learning_rate":0.5,"beta":50}, BASE_DIR + "frac3B50/", "Fractional Gradient Descent V3"),
+        # ( Frac3Optimizer, {"learning_rate":0.1,"beta":10}, BASE_DIR + "frac3B1/", "Fractional Gradient Descent V3"),
+        # ( Frac3Adap, {"learning_rate":0.001,"beta":50}, BASE_DIR + "frac3A_B50/", "Fractional Gradient Descent V3 Adaptive Learning Rate"),
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
-        # ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/"),
-        ( FracOptimizer, {"learning_rate":0.1,"beta":5}, BASE_DIR + "fracB5/" , "FracGradient V2"),
-        # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
+        ( FracOptimizer2, {"learning_rate":0.0001,"beta":0.04}, BASE_DIR + "frac2B05_2/", "FracGradient"),
+        ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGradient V2"),
+        # ( AdamOptimizer, {"learning_rate":0.001}, BASE_DIR + "adam/", "Adam Optimizer"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
-        ( FracOptimizer2, {"learning_rate":0.1,"beta":1}, BASE_DIR + "frac2B01/", "FracGradient"),
-        # ( FracOptimizerBStable, {"learning_rate":0.1,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
+        # ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
+        # ( FracOptimizer4, {'learning_rate': 0.001, 'beta': 0.05}, BASE_DIR + "frac4B05/", "FracGradient V4"),
     ]
     
     D2 = gen_grid_search(
         [
-         (FracOptimizer , {"learning_rate":[10,5,2,1,0.1,0.01,0.001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
-         (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
-         (FracOptimizer , {"learning_rate":[0.1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
-         (FracAdap , {"learning_rate":[0.1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
+         (FracOptimizer , {"learning_rate":[0.1,0.01,0.001,0.0005,0.0001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
+         (FracOptimizer , {"learning_rate":[0.0002],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracAdap , {"learning_rate":[0.0002],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
         ]
     )
     
@@ -114,14 +112,14 @@ def main():
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
         p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
-   
+    
     if False:
         with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
+            futures = [executor.submit(run_pipeline, Optimizer, params, output) for Optimizer, params, output, _ in D]
             for future in futures:
                 future.result()
     else:
-        for Optimizer, params, output, _ in D:
+        for Optimizer, params, output, name in D:
             run_pipeline(Optimizer, params, output)
     
     number_of_models_params = 0
@@ -134,7 +132,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace","HappyFace 2 - 1 big hidden layer")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "HappyFace", "HappyFace 4 - 2 hidden layer with relu")
     
 if __name__ == "__main__":
     main()    
