@@ -1,6 +1,6 @@
 # FracGradient
 
-Repository for the implementation of trained algorithm for gradient descent that uses fractional derivitives.
+Repository for the implementation and testinh of trained algorithm for gradient descent that uses fractional derivitives.
 
 ## Project Structure
 
@@ -35,7 +35,26 @@ The repository is organized as follows:
 
 Would you like me to make the **experiment naming conventions** (like `main_mnist3_2_hidden_layer_32_16.py`) clearer in the README (e.g., a short legend explaining what each part of the filename means)?
 
+## Running Experiments
 
-# Results
+Example command to run one experiment:
 
-![Image](res.png)
+```bash
+python3 src/main_cifar10_res50v2_data_augmentation.py
+```
+This will execute the CIFAR-10 experiment using the ResNet50V2 architecture with data augmentation.
+
+To run all experiments sequentially, use the provided script:
+
+```bash
+python3 src/run_all.py python3
+```
+
+This will execute all `main_*.py` scripts in the `src/` directory using the specified Python interpreter (`python3` in this case).
+
+## Customization
+
+To customize: 
+- Comment/uncomment optimizers in the `D` list to choose which ones to include in the experiment.
+
+Make new experiments by copying and modifying existing `main_*.py` files in the `src/` directory.
