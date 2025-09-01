@@ -8,7 +8,7 @@ Example usage:
 import pathlib
 import subprocess
 RUN_DIR = "src/"
-PYTHON_VERSION = ".venv/bin/python3"
+PYTHON_VERSION = "python3"
 # get arg 0 which is python that we are using to run this script
 import sys
 if len(sys.argv) > 1:

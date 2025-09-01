@@ -35,6 +35,20 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     costs = []
     optimzer_names = []
     
+    def extract_name(output):
+        if output.startswith("_"):
+            return "".join(output.split("_")[1:3])
+        else:
+            if output.startswith("frac2"):
+                return "fracv2"
+            elif output.startswith("fracadap"):
+                return "FracAdap"
+            elif output.startswith("fracB"):
+                return "fracB"
+            elif output.startswith("frac"):
+                return "frac"
+        return "COULD NOT EXTRACT NAME"   
+    
     for Optimizer, params, output, name in D:
         params_path = output + "params.json"
         if not os.path.exists(params_path):
@@ -52,6 +66,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             final_cost = history["cost"][-1]
             betas.append(params["beta"])
             costs.append(final_cost)
+            optimzer_names.append(extract_name(dir))
     # if the optimizers have params beta, plot the final cost vs beta
     plt.figure(figsize=(12, 8))
     plt.xlabel("Beta")
@@ -61,13 +76,17 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     # limit y-axis to [0, 1]
     plt.title("Final Cost vs Beta")
     plt.tight_layout()
-    # print("Betas:", sorted(betas))
-    # set colors in function of 
-    plt.scatter(betas, costs)
+    unique_names = list(set(optimzer_names))
+    colors = plt.cm.get_cmap('tab10', len(unique_names))
+    name_to_color = {name: colors(i) for i, name in enumerate(unique_names)}
+    print("NAME TO COLOR:", name_to_color)
+    plt.scatter(betas, costs, c=[name_to_color[name] for name in optimzer_names])
     costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
     plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
-    # plt.plot(betas, costs, label="Final Cost vs Beta")
-    plt.legend()
+    # add legend of the unique names
+    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
+    labels = list(name_to_color.keys())
+    plt.legend(handles, labels, title="Optimizers")
     plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
     
     
