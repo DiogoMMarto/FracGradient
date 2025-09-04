@@ -36,18 +36,10 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     optimzer_names = []
     
     def extract_name(output):
-        if output.startswith("_"):
-            return "".join(output.split("_")[1:3])
-        else:
-            if output.startswith("frac2"):
-                return "fracv2"
-            elif output.startswith("fracadap"):
-                return "FracAdap"
-            elif output.startswith("fracB"):
-                return "fracB"
-            elif output.startswith("frac"):
-                return "frac"
-        return "COULD NOT EXTRACT NAME"   
+        #split by "learning" and take the first part
+        if "learning" in output:
+            return output.split("learning")[0].strip()
+        return output  
     
     for Optimizer, params, output, name in D:
         params_path = output + "params.json"
@@ -55,7 +47,9 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             with open(params_path, 'w') as f:
                 json.dump(params, f)
     
-    for dir in os.listdir(BASE_DIR):
+    for Optimizer, params, output, name in D:
+    # for dir in os.listdir(BASE_DIR):
+        dir = output.replace(BASE_DIR, "")
         params_path = os.path.join(BASE_DIR, dir, "params.json")
         if not os.path.exists(params_path):
             print(f"Params file {params_path} does not exist, skipping.")
@@ -66,7 +60,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             final_cost = history["cost"][-1]
             betas.append(params["beta"])
             costs.append(final_cost)
-            optimzer_names.append(extract_name(dir))
+            optimzer_names.append(extract_name(name))
     # if the optimizers have params beta, plot the final cost vs beta
     plt.figure(figsize=(12, 8))
     plt.xlabel("Beta")
@@ -79,10 +73,10 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     unique_names = list(set(optimzer_names))
     colors = plt.cm.get_cmap('tab10', len(unique_names))
     name_to_color = {name: colors(i) for i, name in enumerate(unique_names)}
-    print("NAME TO COLOR:", name_to_color)
+    # print("NAME TO COLOR:", name_to_color)
     plt.scatter(betas, costs, c=[name_to_color[name] for name in optimzer_names])
     costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
-    plt.ylim(min(costs) - 0.1, min(costs) + 0.4)
+    plt.ylim(min(costs) - 0.1, min(costs) + 1.5)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
@@ -395,4 +389,17 @@ class Pipeline:
             plt.suptitle('Alpha values for each layer over iterations')
             plt.tight_layout()
             plt.savefig(self.output_dir + 'alpha_values.png')
+            plt.close()
+            
+            # now plot the alpha values for each layer in a single plot
+            plt.figure(figsize=(12, 8))
+            for i in range(num_layers):
+                plt.plot(history['alpha'][i], label=f'Layer {i}')
+            plt.title('Alpha values for each layer over iterations')
+            plt.xlabel('Iteration')
+            plt.ylabel('Alpha')
+            plt.ylim(0, 1.02)
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(self.output_dir + 'alpha_values_all_layers.png')
             plt.close()
