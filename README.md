@@ -68,3 +68,13 @@ To customize:
 - Comment/uncomment optimizers in the `D` list to choose which ones to include in the experiment.
 
 Make new experiments by copying and modifying existing `main_*.py` files in the `src/` directory.
+
+## Report 
+
+- [Project Report (WIP)](docs/Fractional(WIP).pdf)
+
+
+- Legendass mudar nome e x e bolas
+- change psi to like t^p
+- add on report
+- k-fold cross validation
