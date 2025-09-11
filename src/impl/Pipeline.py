@@ -71,10 +71,24 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.title("Final Cost vs Beta")
     plt.tight_layout()
     unique_names = list(set(optimzer_names))
-    colors = plt.cm.get_cmap('tab10', len(unique_names))
-    name_to_color = {name: colors(i) for i, name in enumerate(unique_names)}
+    colors = ["r", "b", "g", "c", "m", "y", "k"]
+    markers = ["x", "o", "*"]
+    name_to_color = {name: colors[i] for i, name in enumerate(unique_names)}
+    name_to_marker = {name: markers[i] for i, name in enumerate(unique_names)}
     # print("NAME TO COLOR:", name_to_color)
-    plt.scatter(betas, costs, c=[name_to_color[name] for name in optimzer_names])
+    for name in unique_names:
+        # Filter the data for the current optimizer
+        x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
+        y_data = [costs[i] for i, n in enumerate(optimzer_names) if n == name]
+
+        # Plot the filtered data with a single color and marker
+        plt.scatter(
+            x_data,
+            y_data,
+            c=name_to_color[name],
+            marker=name_to_marker[name],
+            label=name  # Add a label for the legend
+        )
     costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
     plt.ylim(min(costs) - 0.1, min(costs) + 1.5)
     # add legend of the unique names

@@ -336,7 +336,7 @@ class FracOptimizer2(ClassicOptimizer):
         self.beta = 0.9
         self.previous_weigths = None
         self.previous_grads = None
-        self.previous_cost = None
+        self.previous_cost = None   
     
     def step(self, params, grads, cost):
         if self.previous_grads is None or self.previous_cost is None or self.previous_weigths is None:
