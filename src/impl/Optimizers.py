@@ -52,14 +52,16 @@ class ClassicOptimizer:
         self.base_time = None
         self.verbose = verbose
         self.parent = None  # Placeholder for parent object, if needed later
+        self.final_weights = None
 
-    def step(self, params: list[np.ndarray], grads:list[np.ndarray], cost: float):
+    def step(self, params: list[np.ndarray], grads:list[np.ndarray], cost: float) -> list[np.ndarray]:
         
         for i in range(len(params)):
             params[i] -= self.learning_rate * grads[i]
-        self._end_step(cost)
+        self._end_step(cost,params)
+        return params
         
-    def _end_step(self,cost:float):
+    def _end_step(self,cost:float, params: list[np.ndarray]):
         self.history['cost'].append(cost)
         if self.base_time is None:
             self.base_time = time()
@@ -67,6 +69,7 @@ class ClassicOptimizer:
         self.i += 1
         if self.verbose:
             self._print_step_info(cost)
+        self.final_weights = params
     
     def _print_step_info(self, cost:float):
         print(f"Step {self.i}: Cost = {cost:.4f}, Time = {self.history['time'][-1]:.4f} seconds")
@@ -79,6 +82,9 @@ class ClassicOptimizer:
         
     def get_history(self) -> dict:
         return self.history
+    
+    def end_train(self):
+        return self.final_weights
     
 class MomentumOptimizer(ClassicOptimizer):
     """
@@ -135,7 +141,7 @@ class MomentumOptimizer(ClassicOptimizer):
             self.velocity[i] = self.momentum * self.velocity[i] - self.learning_rate * grads[i]
             params[i] += self.velocity[i]
         
-        super().step(params, grads, cost)
+        return super().step(params, grads, cost)
         
     def reset(self):
         super().reset()
@@ -191,7 +197,7 @@ class AdaptiveLearningRateOptimizer(ClassicOptimizer):
 
     def step(self, params, grads, cost):
         self.compute_learning_rate(cost)
-        super().step(params, grads, cost)
+        return super().step(params, grads, cost)
         
     def compute_learning_rate(self, cost):
         if self.i == 0:
@@ -273,7 +279,7 @@ class AdamOptimizer(ClassicOptimizer):
             
             params[i] -= self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
         
-        self._end_step(cost)
+        self._end_step(cost, params)
         
     def reset(self):
         super().reset()
@@ -320,7 +326,7 @@ class FracOptimizer(ClassicOptimizer):
         self.previous_grads = [grad.copy() for grad in grads]
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
 
     def reset(self):
         super().reset()
@@ -352,7 +358,7 @@ class FracOptimizer2(ClassicOptimizer):
         self.previous_grads = [grad.copy() for grad in grads]
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
 
     def reset(self):
         super().reset()
@@ -387,7 +393,7 @@ class Frac3Optimizer(ClassicOptimizer):
         self.previous_grads = [ grad.copy() for grad in grads ]
         self.previous_cost = cost
         self.previous_weigths = [ weigths.copy() for weigths in params ]
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
 
     def reset(self):
         super().reset()
@@ -405,7 +411,7 @@ class FracAdap(FracOptimizer):
         
     def step(self, params, grads, cost):
         self.compute_learning_rate(cost)
-        super().step(params, grads, cost)
+        return super().step(params, grads, cost)
         
     def reset(self):
         super().reset()
@@ -464,7 +470,7 @@ class FracTrue(ClassicOptimizer):
         self.previous_grads = [ grad.copy() for grad in grads ]
         self.previous_cost = cost
         self.previous_weigths = [ weigths.copy() for weigths in params ]
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
         
     def reset(self):
         super().reset()
@@ -481,7 +487,7 @@ class Frac3Adap(Frac3Optimizer):
 
     def step(self, params, grads, cost):
         self.compute_learning_rate(cost)
-        super().step(params, grads, cost)
+        return super().step(params, grads, cost)
 
     def reset(self):
         super().reset()
@@ -535,7 +541,7 @@ class FracOptimizerBStable(ClassicOptimizer):
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
         
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
 
     def reset(self):
         super().reset()
@@ -579,10 +585,68 @@ class FracOptimizer4(ClassicOptimizer):
                 
         self.previous_cost = cost
         self.previous_weigths = [weigths.copy() for weigths in params]
-        super().step(params, new_grads, cost)
+        return super().step(params, new_grads, cost)
 
     def reset(self):
         super().reset()
         self.previous_grads = None
         self.previous_cost = None
         self.previous_weigths = None
+        
+def psi_function(weigths):
+    return weigths
+
+class FracOptimizerPsi(ClassicOptimizer):
+    def __init__(self, learning_rate=0.001, alpha_func = alpha_function, beta=0.9, psi = psi_function, verbose=False):
+        """
+        Initialize the FracOptimizer with specified learning rate, and verbosity.
+
+        Args:
+            learning_rate (float): The initial learning rate for the optimizer. Default is 0.001.
+            verbose (bool): If True, enables verbose output. Default is False.
+
+        Attributes:
+            learning_rate (float): Stores the initial learning rate.
+            fraction (float): Stores the fractional order.
+        """
+        super().__init__(learning_rate, verbose)
+        self.alpha_func = alpha_func
+        self.psi = psi
+        self.beta = beta
+        self.previous_weigths_psi = None
+        self.current_weigths = None
+        self.previous_grads_psi = None
+        self.previous_cost_psi = None   
+
+    def step(self, params_psi, grads_psi, cost_psi):
+        if self.previous_grads_psi is None or self.previous_cost_psi is None or self.previous_weigths_psi is None:
+            new_grads = grads_psi
+            self.current_weigths = params_psi
+            self.history['alpha'] = [[] for _ in range(len(self.parent.weights))] # type: ignore
+        else:
+            new_grads = []
+            for i in range(len(params_psi)):
+                norm_grad = np.linalg.norm(self.previous_grads_psi[i])
+                alpha = self.alpha_func(norm_grad, self.beta)
+                new_grad = frac_gradient_from_gradient(alpha, self.previous_grads_psi[i], params_psi[i], self.previous_weigths_psi[i])
+                new_grads.append(new_grad)
+                self.history['alpha'][i].append(alpha)
+                
+        self.previous_grads_psi = [grad.copy() for grad in grads_psi]
+        self.previous_cost_psi = cost_psi
+        self.previous_weigths_psi = [weigths.copy() for weigths in params_psi]
+        self.current_weigths = super().step(self.current_weigths, new_grads, cost_psi)
+        params_psi = [ self.psi(weigths) for weigths in self.current_weigths]
+        return params_psi
+        
+    def _print_step_info(self, cost:float):
+        print(f"Step {self.i}: Cost (Psi) = {cost:.4f}, Time = {self.history['time'][-1]:.4f} seconds")
+
+    def reset(self):
+        super().reset()
+        self.previous_grads = None
+        self.previous_cost = None
+        self.previous_weigths = None
+        
+    def end_train(self):
+        return self.current_weigths

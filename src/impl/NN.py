@@ -211,4 +211,5 @@ class NeuralNetwork:
             A_ , Z_ = self.forward_propagation_self(X)
             cost = self.cost_function.cost(A_, self.weights,y)
             grads = self.cost_function.gradient(A_,Z_, self.weights, y)
-            self.optimizer.step(self.weights, grads, cost)
+            self.weights = self.optimizer.step(self.weights, grads, cost)
+        self.weights = self.optimizer.end_train()

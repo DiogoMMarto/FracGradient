@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import numpy as np
 import os
 import json
-import math
 
 from itertools import product
 
@@ -33,6 +32,8 @@ def get_scores(file_path):
 def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirement_name):
     betas = []
     costs = []
+    accs = []
+    accs_test = []
     optimzer_names = []
     
     def extract_name(output):
@@ -45,7 +46,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         params_path = output + "params.json"
         if not os.path.exists(params_path):
             with open(params_path, 'w') as f:
-                json.dump(params, f)
+                json.dump(params, f, default=str)
     
     for Optimizer, params, output, name in D:
     # for dir in os.listdir(BASE_DIR):
@@ -54,12 +55,17 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         if not os.path.exists(params_path):
             print(f"Params file {params_path} does not exist, skipping.")
             continue
+        # print(params_path)
         params = json.load(open(params_path))
         if "beta" in params:
             history = json.load(open(os.path.join(BASE_DIR, dir, "history.json")))
             final_cost = history["cost"][-1]
             betas.append(params["beta"])
             costs.append(final_cost)
+            classification_report = get_scores(os.path.join(BASE_DIR, dir, "classification_report.txt"))
+            accs.append(classification_report["accuracy"])
+            test_classification_report = get_scores(os.path.join(BASE_DIR, dir, "test_classification_report.txt"))
+            accs_test.append(test_classification_report["accuracy"])
             optimzer_names.append(extract_name(name))
     # if the optimizers have params beta, plot the final cost vs beta
     plt.figure(figsize=(12, 8))
@@ -72,7 +78,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.tight_layout()
     unique_names = list(set(optimzer_names))
     colors = ["r", "b", "g", "c", "m", "y", "k"]
-    markers = ["x", "o", "*"]
+    markers = ["x", "o", "*", "+", "v", "^", "s"]
     name_to_color = {name: colors[i] for i, name in enumerate(unique_names)}
     name_to_marker = {name: markers[i] for i, name in enumerate(unique_names)}
     # print("NAME TO COLOR:", name_to_color)
@@ -97,6 +103,90 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.legend(handles, labels, title="Optimizers")
     plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
     
+    # plot acc vcs beta
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Beta")
+    # logscale x-axis
+    plt.xscale("log")
+    plt.ylabel("Accuracy")
+    # limit y-axis to [0, 1]
+    plt.title("Accuracy vs Beta")
+    plt.tight_layout()
+    for name in unique_names:
+        # Filter the data for the current optimizer
+        x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
+        y_data = [accs[i] for i, n in enumerate(optimzer_names) if n == name]
+
+        # Plot the filtered data with a single color and marker
+        plt.scatter(
+            x_data,
+            y_data,
+            c=name_to_color[name],
+            marker=name_to_marker[name],
+            label=name  # Add a label for the legend
+        )
+    plt.ylim(min(accs) - 0.1, 1.05)
+    # add legend of the unique names
+    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
+    labels = list(name_to_color.keys())
+    plt.legend(handles, labels, title="Optimizers")
+    plt.savefig(BASE_DIR + "acc_vs_beta.png")
+    
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Beta")
+    # logscale x-axis
+    plt.xscale("log")
+    plt.ylabel("Accuracy")
+    # limit y-axis to [0, 1]
+    plt.title("Accuracy vs Beta")
+    plt.tight_layout()
+    for name in unique_names:
+        # Filter the data for the current optimizer
+        x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
+        y_data = [accs[i] for i, n in enumerate(optimzer_names) if n == name]
+
+        # Plot the filtered data with a single color and marker
+        plt.scatter(
+            x_data,
+            y_data,
+            c=name_to_color[name],
+            marker=name_to_marker[name],
+            label=name  # Add a label for the legend
+        )
+    plt.ylim(0.7, 1.05)
+    # add legend of the unique names
+    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
+    labels = list(name_to_color.keys())
+    plt.legend(handles, labels, title="Optimizers")
+    plt.savefig(BASE_DIR + "acc_vs_beta.png")
+    
+    plt.figure(figsize=(12, 8))
+    plt.xlabel("Beta")
+    # logscale x-axis
+    plt.xscale("log")
+    plt.ylabel("test Accuracy")
+    # limit y-axis to [0, 1]
+    plt.title("test Accuracy vs Beta")
+    plt.tight_layout()
+    for name in unique_names:
+        # Filter the data for the current optimizer
+        x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
+        y_data = [accs_test[i] for i, n in enumerate(optimzer_names) if n == name]
+
+        # Plot the filtered data with a single color and marker
+        plt.scatter(
+            x_data,
+            y_data,
+            c=name_to_color[name],
+            marker=name_to_marker[name],
+            label=name  # Add a label for the legend
+        )
+    plt.ylim(0.7, 1.05)
+    # add legend of the unique names
+    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
+    labels = list(name_to_color.keys())
+    plt.legend(handles, labels, title="Optimizers")
+    plt.savefig(BASE_DIR + "test_acc_vs_beta.png")
     
     def load_last_cost(output):
         history = json.load(open(output + "history.json"))
@@ -141,7 +231,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
                 "test_classification_report": test_classification_report
             }
         with open("results/res.json", "w") as f:
-            json.dump(res, f, indent=4)
+            json.dump(res, f, indent=4 , default=str)
             
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        
@@ -311,7 +401,7 @@ class Pipeline:
     def run(self,epochs=100,verbose=False):
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
-            return
+            # return
             self.load_weigths_and_history()
             print("Loaded existing weights and history.")
         else:
