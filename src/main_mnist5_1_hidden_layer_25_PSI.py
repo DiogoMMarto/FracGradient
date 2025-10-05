@@ -41,10 +41,10 @@ class psi_gen_power:
         return np.power(np.abs(x), self.n)
     
     def __repr__(self):
-        return f"power {self.n} "
+        return f"power_{self.n}"
     
     def __str__(self):
-        return f"power {self.n} "
+        return f"power_{self.n}"
     
     def to_dict(self):
         return {"type": "psi_gen_power", "n": self.n}
