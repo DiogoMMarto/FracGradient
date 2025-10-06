@@ -190,7 +190,10 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     
     def load_last_cost(output):
         history = json.load(open(output + "history.json"))
-        return history["cost"][-1]
+        scores = get_scores(output + "classification_report.txt")
+        if "accuracy" in scores:
+            return -scores["accuracy"]
+        return 0
     
     last_cost = { (Optimizer, tuple(params.items()), output, name): load_last_cost(output) for Optimizer, params, output, name in D }
     # sort the optimizers by last cost
@@ -398,10 +401,10 @@ class Pipeline:
         else:
             print(f"History file {history_path} does not exist.")
         
-    def run(self,epochs=100,verbose=False):
+    def run(self,epochs=100,verbose=False):        
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
-            # return
+            return
             self.load_weigths_and_history()
             print("Loaded existing weights and history.")
         else:

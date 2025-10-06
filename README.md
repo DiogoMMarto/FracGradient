@@ -73,7 +73,6 @@ Make new experiments by copying and modifying existing `main_*.py` files in the 
 
 - [Project Report (WIP)](docs/Fractional(WIP).pdf)
 
-
 - Legendass mudar nome e x e bolas
 - change psi to like t^p
 - add on report
