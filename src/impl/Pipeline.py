@@ -2,12 +2,13 @@ from impl.NN import NeuralNetwork
 from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg') 
+# matplotlib.use('Agg') 
 import numpy as np
 import os
 import json
 
 from itertools import product
+from .Optimizers import FracOptimizerPsi
 
 def get_scores(file_path):
     """Read classification report from a file and return it as a dictionary."""
@@ -58,6 +59,9 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         # print(params_path)
         params = json.load(open(params_path))
         if "beta" in params:
+            if not os.path.exists(os.path.join(BASE_DIR, dir, "history.json")):
+                print(f"History file {os.path.join(BASE_DIR, dir, 'history.json')} does not exist, skipping.")
+                continue
             history = json.load(open(os.path.join(BASE_DIR, dir, "history.json")))
             final_cost = history["cost"][-1]
             betas.append(params["beta"])
@@ -188,12 +192,53 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.legend(handles, labels, title="Optimizers")
     plt.savefig(BASE_DIR + "test_acc_vs_beta.png")
     
+    # 3D plot of beta and n vs cost for optimizer FracOptimizerPSI only , using matplotlib's 3D plotting
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel("Beta")
+    ax.set_ylabel("n")
+    ax.set_zlabel("$J(\\Theta)$")
+    ax.set_title("Final Cost vs Beta and n")
+    from collections import defaultdict
+
+    groups = defaultdict(list)
+    for Optimizer, params, output, name in D:
+        if Optimizer == FracOptimizerPsi:
+            if not os.path.exists(output + "history.json"):
+                continue
+            history = json.load(open(output + "history.json"))
+            final_cost = history["cost"][-1]
+            pp = dict(params)
+            beta = pp.get("beta", 1)
+            n = pp.get("psi", "")
+            n2 = n.n
+            name2 = str(n).split("_")[0]
+            groups[name2].append((beta, n2, final_cost))
+
+    for name2, points in groups.items():
+        betas, ns, costs = zip(*points)
+        ax.scatter(betas, ns, costs, label=name2)
+
+    ax.set_zlim(0, 20)
+    ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
+    ax.view_init(elev=30, azim=170) 
+    plt.savefig(BASE_DIR + "beta_n_cost.png")
+    # plt.show()
+    
     def load_last_cost(output):
+        if not os.path.exists(output + "history.json"):
+            print(f"History file {output + 'history.json'} does not exist, skipping.")
+            return float('inf')
         history = json.load(open(output + "history.json"))
-        scores = get_scores(output + "classification_report.txt")
-        if "accuracy" in scores:
-            return -scores["accuracy"]
-        return 0
+        # scores = get_scores(output + "classification_report.txt")
+        # if "accuracy" in scores:
+        #     return -scores["accuracy"]
+        # return 0
+        last_cost = history["cost"][-1]
+        # check if nan
+        if np.isnan(last_cost):
+            return float('inf')
+        return last_cost
     
     last_cost = { (Optimizer, tuple(params.items()), output, name): load_last_cost(output) for Optimizer, params, output, name in D }
     # sort the optimizers by last cost
@@ -278,7 +323,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             m = history["cost"][-1]
     plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
-    plt.savefig(BASE_DIR + "history_time.png")
+    plt.savefig(BASE_DIR + "history_time.png")    
           
 def expand_tuple(t):
     elements = [item if isinstance(item, list) else [item] for item in t]
@@ -404,7 +449,7 @@ class Pipeline:
     def run(self,epochs=100,verbose=False):        
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
-            return
+            # return
             self.load_weigths_and_history()
             print("Loaded existing weights and history.")
         else:
