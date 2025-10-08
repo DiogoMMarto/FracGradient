@@ -38,7 +38,7 @@ class psi_gen_power:
         self.n = n
 
     def __call__(self, x):
-        return np.power(np.abs(x), self.n)
+        return np.power(x, self.n)
     
     def __repr__(self):
         return f"power_{self.n}_"
@@ -113,10 +113,10 @@ def main():
         [
          (FracOptimizer , {"learning_rate":[1,1.5,2],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[1],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
-         (FracOptimizerPsi , {"learning_rate":[0.5,0.1],"beta":list(2**np.arange(-5,2.1,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.05,0.01],"beta":list(2**np.arange(-3,0,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5,0.1],"beta":list(2**np.arange(-5,2.1,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.05,0.01],"beta":list(2**np.arange(-3,0,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.1,0.05,0.01,0.5,1],"beta":list(2**np.arange(-3,0.1,0.5)),"psi":[psi_gen_xex(n) for n in [-1,-0.5,-0.25,-0.1,0.1,0.25,0.5,1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1.01,1.1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1,1.01,1.1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          
         ]

@@ -221,7 +221,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
 
     ax.set_zlim(0, 20)
     ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
-    ax.view_init(elev=30, azim=170) 
+    ax.view_init(elev=10, azim=150) 
     plt.savefig(BASE_DIR + "beta_n_cost.png")
     # plt.show()
     
@@ -449,7 +449,7 @@ class Pipeline:
     def run(self,epochs=100,verbose=False):        
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
-            # return
+            return
             self.load_weigths_and_history()
             print("Loaded existing weights and history.")
         else:
