@@ -91,8 +91,8 @@ def main():
     )
     
     D = [
-        ( ClassicOptimizer, {"learning_rate":0.01}, BASE_DIR + "classical_2/" , "Gradient Descent"),
-        ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, BASE_DIR + "adaptive/", "Adaptive Learning Rate"),
+        ( ClassicOptimizer, {"learning_rate":0.01}, BASE_DIR + "classical_2/" , "SGD"),
+        ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, BASE_DIR + "adaptive/", "ALR"),
         # ( MomentumOptimizer, {"learning_rate":1, "momentum":0.5}, BASE_DIR + "momentum/"),
         # ( FracOptimizer, {"learning_rate":1}, BASE_DIR + "frac/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.1}, BASE_DIR + "fracB01/"),
