@@ -3,6 +3,13 @@ from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
 import matplotlib
 # matplotlib.use('Agg') 
+plt.rcParams.update({
+    'font.size': 14,
+    'font.weight': 'bold',
+    'axes.labelweight': 'bold', # Specifically ensures axis labels are bold
+    'axes.titleweight': 'bold'  # Specifically ensures titles are bold
+})
+plt.rcParams['figure.figsize'] = (12, 8)
 import numpy as np
 import os
 import json
@@ -39,8 +46,8 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     
     def extract_name(output):
         #split by "learning" and take the first part
-        if "learning" in output:
-            return output.split("learning")[0].strip()
+        if "lr" in output:
+            return output.split("lr")[0].strip()
         return output  
     
     for Optimizer, params, output, name in D:
@@ -72,20 +79,17 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             accs_test.append(test_classification_report["accuracy"])
             optimzer_names.append(extract_name(name))
     # if the optimizers have params beta, plot the final cost vs beta
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
-    # logscale x-axis
+    plt.figure()
+    plt.xlabel("$\\beta$")
     plt.xscale("log")
-    plt.ylabel("$J(\\Theta)$")
-    # limit y-axis to [0, 1]
-    plt.title("Final Cost vs Beta")
+    plt.ylabel("Loss")
+    # plt.title("Final Cost vs $\\beta$")
     plt.tight_layout()
     unique_names = list(set(optimzer_names))
     colors = ["r", "b", "g", "c", "m", "y", "k"]
     markers = ["x", "o", "*", "+", "v", "^", "s"]
     name_to_color = {name: colors[i] for i, name in enumerate(unique_names)}
     name_to_marker = {name: markers[i] for i, name in enumerate(unique_names)}
-    # print("NAME TO COLOR:", name_to_color)
     for name in unique_names:
         # Filter the data for the current optimizer
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
@@ -97,24 +101,24 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             y_data,
             c=name_to_color[name],
             marker=name_to_marker[name],
-            label=name  # Add a label for the legend
+            label=name 
         )
     costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
     plt.ylim(min(costs) - 0.1, min(costs) + 1.5)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
-    plt.legend(handles, labels, title="Optimizers")
+    plt.legend(handles, labels)
     plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
     
     # plot acc vcs beta
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
+    plt.figure()
+    plt.xlabel("$\\beta$")
     # logscale x-axis
     plt.xscale("log")
     plt.ylabel("Accuracy")
     # limit y-axis to [0, 1]
-    plt.title("Accuracy vs Beta")
+    # plt.title("Accuracy vs $\\beta$")
     plt.tight_layout()
     for name in unique_names:
         # Filter the data for the current optimizer
@@ -127,22 +131,22 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             y_data,
             c=name_to_color[name],
             marker=name_to_marker[name],
-            label=name  # Add a label for the legend
+            label=name 
         )
     plt.ylim(min(accs) - 0.1, 1.05)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
-    plt.legend(handles, labels, title="Optimizers")
+    plt.legend(handles, labels)
     plt.savefig(BASE_DIR + "acc_vs_beta.png")
     
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
+    plt.figure()
+    plt.xlabel("$\\beta$")
     # logscale x-axis
     plt.xscale("log")
     plt.ylabel("Accuracy")
     # limit y-axis to [0, 1]
-    plt.title("Accuracy vs Beta")
+    # plt.title("Accuracy vs $\\beta$")
     plt.tight_layout()
     for name in unique_names:
         # Filter the data for the current optimizer
@@ -155,22 +159,22 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             y_data,
             c=name_to_color[name],
             marker=name_to_marker[name],
-            label=name  # Add a label for the legend
+            label=name 
         )
     plt.ylim(0.7, 1.05)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
-    plt.legend(handles, labels, title="Optimizers")
+    plt.legend(handles, labels)
     plt.savefig(BASE_DIR + "acc_vs_beta.png")
     
-    plt.figure(figsize=(12, 8))
-    plt.xlabel("Beta")
+    plt.figure()
+    plt.xlabel("$\\beta$")
     # logscale x-axis
     plt.xscale("log")
-    plt.ylabel("test Accuracy")
+    plt.ylabel("Test Accuracy")
     # limit y-axis to [0, 1]
-    plt.title("test Accuracy vs Beta")
+    # plt.title("test Accuracy vs $\\beta$")
     plt.tight_layout()
     for name in unique_names:
         # Filter the data for the current optimizer
@@ -183,22 +187,22 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             y_data,
             c=name_to_color[name],
             marker=name_to_marker[name],
-            label=name  # Add a label for the legend
+            label=name 
         )
     plt.ylim(0.7, 1.05)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
-    plt.legend(handles, labels, title="Optimizers")
+    plt.legend(handles, labels)
     plt.savefig(BASE_DIR + "test_acc_vs_beta.png")
     
     # 3D plot of beta and n vs cost for optimizer FracOptimizerPSI only , using matplotlib's 3D plotting
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel("Beta")
-    ax.set_ylabel("n")
-    ax.set_zlabel("$J(\\Theta)$")
-    ax.set_title("Final Cost vs Beta and n")
+    ax.set_xlabel("$\\beta$")
+    ax.set_ylabel("$\\gamma$")
+    ax.set_zlabel("Loss")
+    # ax.set_title("Final Cost vs $\\beta$ and n")
     from collections import defaultdict
 
     groups = defaultdict(list)
@@ -219,10 +223,36 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         betas, ns, costs = zip(*points)
         ax.scatter(betas, ns, costs, label=name2)
 
-    ax.set_zlim(0, 20)
+    ax.set_zlim(0, 2.5)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-1, 1)
     ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
     ax.view_init(elev=10, azim=150) 
+    plt.legend()
     plt.savefig(BASE_DIR + "beta_n_cost.png")
+    # plt.show()
+    
+    fig, ax = plt.subplots()
+    for i, (name2, points) in enumerate(groups.items()):
+        betas, ns, costs = zip(*points)
+        if "xex" not in name2:
+            continue
+        sc = ax.scatter(ns, costs, c=betas, cmap='viridis', 
+                        vmin=0, vmax=1,s=120, edgecolors='black', 
+                        label=name2)
+
+    cbar = plt.colorbar(sc)
+    cbar.set_label('$\\beta$', fontweight='bold')
+
+    ax.set_xlabel("$\\gamma$")
+    ax.set_ylabel("loss")
+    # ax.set_xlim(0, 1.1)
+    ax.set_ylim(0, 1.1)
+
+    ax.legend(loc='upper right')
+
+    plt.title("Optimization Results (Color = Cost)")
+    plt.savefig(BASE_DIR + "beta_n_cost_2d.png", bbox_inches='tight')
     # plt.show()
     
     def load_last_cost(output):
@@ -253,14 +283,13 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
                 best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
     print("Best for each Optimizer class:")
     for Optimizer_name, (Optimizer, params, output, name, cost) in best_per_optimizer.items():
+        print("-"*30)
         history = json.load(open(output + "history.json"))
         params = {k: v for k, v in params}
         classification_report = get_scores(output + "classification_report.txt")
         test_classification_report = get_scores(output + "test_classification_report.txt") if os.path.exists(output + "test_classification_report.txt") else None
         print(f"{Optimizer_name}: {name} with cost {cost:.4f} at {output}")
         print(f"Parameters: {params}")
-        if "beta" in params:
-            print(f"{Optimizer_name}    {params['beta']}    {number_of_models_params}   {cost}")
         with open("results/res.json", "r") as f:
             res = json.load(f)
             res = {} if res is None else res
@@ -284,10 +313,10 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        
     
-    plt.figure(figsize=(12, 8))
+    plt.figure()
     plt.xlabel("Iteration")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function over Iterations - " + str(expirement_name))
+    plt.ylabel("Loss")
+    # plt.title("Cost function over Iterations - " + str(expirement_name))
     plt.tight_layout()
     y_heigth = float('inf')
     m = float('inf')
@@ -305,10 +334,10 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.savefig(BASE_DIR + "history.png")
     
     # similar plot but include x = time and y = cost
-    plt.figure(figsize=(12, 8))
+    plt.figure()
     plt.xlabel("Time")
-    plt.ylabel("$J(\\Theta)$")
-    plt.title("Cost function using Gradient Descent")
+    plt.ylabel("Loss")
+    # plt.title("Cost function")
     plt.tight_layout()
     y_heigth = float('inf')
     S = 250
@@ -359,7 +388,17 @@ def gen_names(d: list[tuple]):
         
         params_str = "_".join(f"{k}_{v}" for k, v in params.items())
         new_output_dir = output_dir[:-1] + f"{params_str}/"
-        new_name = f"{name} {params_str.replace('_', ' ')}"
+        name_str = ""
+        for k, v in params.items():
+            if k == "learning_rate":
+                k = "lr"
+            if k == "beta":
+                k = "$\\beta$"
+            if k == "psi":
+                k = "$\\psi$"
+                v = v.n
+            name_str += f" {k}={v:.3f}"
+        new_name = f"{name}{name_str}"
         
         new_tuple = (opt, params, new_output_dir, new_name)
         ret.append(new_tuple)
@@ -481,7 +520,7 @@ class Pipeline:
         cm_path = self.output_dir + 'confusion_matrix.png'
         # make it so the plot doesnt appear on screen
         plt.figure(figsize=(10, 10))
-        plt.title('Confusion Matrix')
+        # plt.title('Confusion Matrix')
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.tight_layout()
@@ -497,22 +536,23 @@ class Pipeline:
         history_time_path = self.output_dir + 'history_time.png'
         plt.plot(history_cost)
         plt.xlabel("Iteration")
-        plt.ylabel("$J(\\Theta)$")
-        plt.title("Cost function using Gradient Descent")
+        plt.ylabel("Loss")
+        # plt.title("Cost function")
         plt.savefig(history_cost_path)
         plt.close()
+        
         plt.plot(history_time)
         plt.xlabel("Iteration")
         plt.ylabel("Time (s)")
-        plt.title("Time using Gradient Descent")
+        # plt.title("Time")
         plt.savefig(history_time_path)
         plt.close()
         
         # plot cost over time ( x = time , y = cost)
         plt.plot(history_time, history_cost)
         plt.xlabel("Time (s)")
-        plt.ylabel("$J(\\Theta)$")
-        plt.title("Cost function using Gradient Descent")
+        plt.ylabel("Loss")
+        # plt.title("Cost function")
         plt.savefig(self.output_dir + 'cost_function.png')
         plt.close()
         
@@ -534,22 +574,24 @@ class Pipeline:
                 axs = [axs]
             for i in range(num_layers):
                 axs[i].plot(history['alpha'][i])
-                axs[i].set_title(f'Alpha values for layer {i}')
+                axs[i].set_title(f'$\\alpha$ values for layer {i}')
                 axs[i].set_xlabel('Iteration')
-                axs[i].set_ylabel('Alpha')
+                axs[i].set_ylabel('$\\alpha$')
                 axs[i].set_ylim(0, 1.02)
-            plt.suptitle('Alpha values for each layer over iterations')
+            # plt.suptitle('$\\alpha$ values for each layer over iterations')
+            plt.xticks(fontsize=14, fontweight='bold')
+            plt.yticks(fontsize=14, fontweight='bold')
             plt.tight_layout()
             plt.savefig(self.output_dir + 'alpha_values.png')
             plt.close()
             
             # now plot the alpha values for each layer in a single plot
-            plt.figure(figsize=(12, 8))
+            plt.figure()
             for i in range(num_layers):
                 plt.plot(history['alpha'][i], label=f'Layer {i}')
-            plt.title('Alpha values for each layer over iterations')
+            # plt.title('$\\alpha$ values for each layer over iterations')
             plt.xlabel('Iteration')
-            plt.ylabel('Alpha')
+            plt.ylabel('$\\alpha$')
             plt.ylim(0, 1.02)
             plt.legend()
             plt.tight_layout()
