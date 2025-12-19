@@ -8,8 +8,6 @@ src/nn/1/*
 # C extensions
 *.so
 
-*history.json
-
 # Distribution / packaging
 .Python
 build/
