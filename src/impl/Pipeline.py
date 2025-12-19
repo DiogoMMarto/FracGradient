@@ -148,11 +148,12 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     # limit y-axis to [0, 1]
     # plt.title("Accuracy vs $\\beta$")
     plt.tight_layout()
+    m = 1
     for name in unique_names:
         # Filter the data for the current optimizer
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
         y_data = [accs[i] for i, n in enumerate(optimzer_names) if n == name]
-
+        m = min(min(y_data),m)
         # Plot the filtered data with a single color and marker
         plt.scatter(
             x_data,
@@ -161,7 +162,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             marker=name_to_marker[name],
             label=name 
         )
-    plt.ylim(0.7, 1.05)
+    plt.ylim(m-0.05, 1.05)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
@@ -176,10 +177,12 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     # limit y-axis to [0, 1]
     # plt.title("test Accuracy vs $\\beta$")
     plt.tight_layout()
+    m = 1
     for name in unique_names:
         # Filter the data for the current optimizer
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
         y_data = [accs_test[i] for i, n in enumerate(optimzer_names) if n == name]
+        m = min(min(y_data),m)
 
         # Plot the filtered data with a single color and marker
         plt.scatter(
@@ -189,7 +192,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             marker=name_to_marker[name],
             label=name 
         )
-    plt.ylim(0.7, 1.05)
+    plt.ylim(m-0.05, 1.05)
     # add legend of the unique names
     handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
     labels = list(name_to_color.keys())
@@ -219,41 +222,42 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             name2 = str(n).split("_")[0]
             groups[name2].append((beta, n2, final_cost))
 
-    for name2, points in groups.items():
-        betas, ns, costs = zip(*points)
-        ax.scatter(betas, ns, costs, label=name2)
+    if len(groups) > 0:
+        for name2, points in groups.items():
+            betas, ns, costs = zip(*points)
+            ax.scatter(betas, ns, costs, label=name2)
 
-    ax.set_zlim(0, 2.5)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(-1, 1)
-    ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
-    ax.view_init(elev=10, azim=150) 
-    plt.legend()
-    plt.savefig(BASE_DIR + "beta_n_cost.png")
-    # plt.show()
-    
-    fig, ax = plt.subplots()
-    for i, (name2, points) in enumerate(groups.items()):
-        betas, ns, costs = zip(*points)
-        if "xex" not in name2:
-            continue
-        sc = ax.scatter(ns, costs, c=betas, cmap='viridis', 
-                        vmin=0, vmax=1,s=120, edgecolors='black', 
-                        label=name2)
+        ax.set_zlim(0, 2.5)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(-1, 1)
+        ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
+        ax.view_init(elev=10, azim=150) 
+        plt.legend()
+        plt.savefig(BASE_DIR + "beta_n_cost.png")
+        # plt.show()
+        
+        fig, ax = plt.subplots()
+        for i, (name2, points) in enumerate(groups.items()):
+            betas, ns, costs = zip(*points)
+            if "xex" not in name2:
+                continue
+            sc = ax.scatter(ns, costs, c=betas, cmap='viridis', 
+                            vmin=0, vmax=1,s=120, edgecolors='black', 
+                            label=name2)
 
-    cbar = plt.colorbar(sc)
-    cbar.set_label('$\\beta$', fontweight='bold')
+        cbar = plt.colorbar(sc)
+        cbar.set_label('$\\beta$', fontweight='bold')
 
-    ax.set_xlabel("$\\gamma$")
-    ax.set_ylabel("loss")
-    # ax.set_xlim(0, 1.1)
-    ax.set_ylim(0, 1.1)
+        ax.set_xlabel("$\\gamma$")
+        ax.set_ylabel("loss")
+        # ax.set_xlim(0, 1.1)
+        ax.set_ylim(0, 1.1)
 
-    ax.legend(loc='upper right')
+        ax.legend(loc='upper right')
 
-    plt.title("Optimization Results (Color = Cost)")
-    plt.savefig(BASE_DIR + "beta_n_cost_2d.png", bbox_inches='tight')
-    # plt.show()
+        plt.title("Optimization Results (Color = Cost)")
+        plt.savefig(BASE_DIR + "beta_n_cost_2d.png", bbox_inches='tight')
+        # plt.show()
     
     def load_last_cost(output):
         if not os.path.exists(output + "history.json"):
@@ -339,17 +343,11 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.ylabel("Loss")
     # plt.title("Cost function")
     plt.tight_layout()
-    y_heigth = float('inf')
     S = 250
-    m = float('inf')
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
         # name = output.split("/")[-2]
         plt.plot(history["time"], history["cost"], label=name)
-        if history["cost"][S] < y_heigth:
-            y_heigth = history["cost"][S]
-        if history["cost"][-1] < m:
-            m = history["cost"][-1]
     plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")    
