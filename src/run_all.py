@@ -17,7 +17,7 @@ if len(sys.argv) > 1:
 def main():
     # run all main*.py files in the RUN_DIR
     run_dir = pathlib.Path(RUN_DIR)
-    main_files = list(run_dir.glob("main_[hm]*.py"))
+    main_files = list(run_dir.glob("main_*cnn*.py"))
     for main_file in main_files:
         print(f"Running {main_file.name}...")
         subprocess.run([PYTHON_VERSION, str(main_file)], check=True)

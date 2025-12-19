@@ -31,7 +31,7 @@ from scipy.io import loadmat
 # tf.config.run_functions_eagerly(True)
 
 from ciphar10.Pipeline import Pipeline, end_graphs
-from ciphar10.Optimizer import FracOptimizer
+from ciphar10.optimizer import FracOptimizer
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -149,7 +149,7 @@ def main():
             "optimizer": Optimizer,
             "metrics": ["accuracy"]
         },
-        output_dir=BASE_DIR + Name_Optimizer.replace(" ","_") + "/",
+        output_dir=BASE_DIR + Name_Optimizer.replace(" ","_").replace("$\\beta$","B") + "/",
         X_test=X_test,
         y_test=y_test,
         data_augmentation=DATA_AUGMENTATION,
@@ -161,16 +161,16 @@ def main():
     )
     
     D = [
-        # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracOptimizer B=0.5"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer B=0.05"),
-        (FracOptimizer(learning_rate=0.1,beta=0.005), "FracOptimizer B=0.005"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.0005,alpha_func=alpha_function5), "FracOptimizer B=0.0005 alpha5"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function5), "FracOptimizer B=0.005 alpha5"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function5), "FracOptimizer B=0.05 alpha5"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracOptimizer B=0.01 alpha2"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracOptimizer B=0.05 alpha3"),          
-        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer B=0.005 alpha4"),          
-        # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracOptimizer B=0.01"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracOptimizer $\\beta$=0.5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer $\\beta$=0.05"),
+        (FracOptimizer(learning_rate=0.1,beta=0.005), "FracOptimizer $\\beta$=0.005"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.0005,alpha_func=alpha_function5), "FracOptimizer $\\beta$=0.0005 alpha5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function5), "FracOptimizer $\\beta$=0.005 alpha5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function5), "FracOptimizer $\\beta$=0.05 alpha5"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracOptimizer $\\beta$=0.01 alpha2"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracOptimizer $\\beta$=0.05 alpha3"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer $\\beta$=0.005 alpha4"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracOptimizer $\\beta$=0.01"),
         # (tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0001), "SGD 0.001"),
         # (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD 0.1"),

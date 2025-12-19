@@ -6,12 +6,19 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 import pathlib
-matplotlib.use('Agg') # Use Agg backend for matplotlib to avoid GUI issues in headless environments
+matplotlib.use('Agg') 
+matplotlib.use('Agg') 
+plt.rcParams.update({
+    'font.size': 14,
+    'font.weight': 'bold',
+    'axes.labelweight': 'bold', # Specifically ensures axis labels are bold
+    'axes.titleweight': 'bold'  # Specifically ensures titles are bold
+})
 
 def end_graphs(BASE_DIR,D,experiment_name):
     historys = {}
     for Optimizer, Name_Optimizer in D:
-        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_") + "/"
+        output_dir = BASE_DIR + Name_Optimizer.replace(" ","_").replace("$\\beta$","B") + "/"
         history_path = pathlib.Path(output_dir) / "history.json"
         if history_path.exists():
             with open(history_path, 'r') as f:
@@ -24,7 +31,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     plt.figure(figsize=(12, 8))
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
-    plt.title("Cost function over iterations - " + experiment_name)
+    # plt.title("Cost function over iterations - " + experiment_name)
     plt.tight_layout()
     
     for Name_Optimizer, history in historys.items():
@@ -42,7 +49,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
             cost_at_1000 = history['loss_per_iteration'][99]
             if cost_at_1000 > max_cost:
                 max_cost = cost_at_1000
-    print(f"Max cost at iteration 1000: {max_cost}")
+    # print(f"Max cost at iteration 1000: {max_cost}")
     plt.ylim(0, max_cost * 1.1)
     plt.savefig(BASE_DIR + "cost_history_iterations.png")
     
@@ -50,7 +57,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     plt.figure(figsize=(12, 8))
     plt.xlabel("Iterations")
     plt.ylabel("Accuracy")
-    plt.title("Accuracy over Epochs - " + experiment_name)
+    # plt.title("Accuracy over Epochs - " + experiment_name)
     plt.tight_layout()
     for Name_Optimizer, history in historys.items():
         plt.plot(history['accuracy'], label=Name_Optimizer)
@@ -62,7 +69,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     plt.figure(figsize=(12, 8))
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Loss over Epochs - " + experiment_name)
+    # plt.title("Loss over Epochs - " + experiment_name)
     plt.tight_layout()
     for Name_Optimizer, history in historys.items():
         plt.plot(history['loss'], label=Name_Optimizer)
@@ -74,7 +81,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     plt.figure(figsize=(12, 8))
     plt.xlabel("Epochs")
     plt.ylabel("Test Loss")
-    plt.title("Test Loss over Epochs - " + experiment_name)
+    # plt.title("Test Loss over Epochs - " + experiment_name)
     plt.tight_layout()
     for Name_Optimizer, history in historys.items():
         plt.plot(history['val_loss'], label=Name_Optimizer)
@@ -86,7 +93,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     plt.figure(figsize=(12, 8))
     plt.xlabel("Epochs")
     plt.ylabel("Test Accuracy")
-    plt.title("Test Accuracy over Epochs - " + experiment_name)
+    # plt.title("Test Accuracy over Epochs - " + experiment_name)
     plt.tight_layout()
     for Name_Optimizer, history in historys.items():
         plt.plot(history['val_accuracy'], label=Name_Optimizer)
@@ -172,10 +179,10 @@ def plot_gradient_norms(history,
             smoothed = moving_average(norms, smooth)
             plt.plot(smoothed, label=f"{layer} grad norm")
         plt.xlabel("Training Step")
-        plt.ylabel("Gradient L2 Norm")
+        plt.ylabel("$\\alpha$")
         if log_scale:
             plt.yscale("log")
-        plt.title("Gradient Norm History")
+        # plt.title("Gradient Norm History")
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
@@ -194,7 +201,7 @@ def plot_gradient_norms(history,
             ax.legend()
             ax.grid(True, alpha=0.3)
         axes[-1].set_xlabel("Training Step")
-        plt.suptitle("Gradient Norms per Layer")
+        plt.suptitle("$\\alpha$ per Layer")
         plt.tight_layout()
         # plt.show()
         
@@ -216,7 +223,7 @@ def plot_loss_per_iteration(history,
     plt.ylabel("Loss")
     if log_scale:
         plt.yscale("log")
-    plt.title("Loss per Iteration History")
+    # plt.title("Loss per Iteration History")
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -313,11 +320,17 @@ class Pipeline:
         with open(self.output_dir + '/history.json', 'r') as f:
             self.history = json.load(f)
         
+    def load_history(self):
+        with open(self.output_dir + '/history.json', 'r') as f:
+            self.history = json.load(f)
+        
     def evaluate(self):    
         """
         Evaluates the model's predictions against the true labels, generating classification reports and confusion matrices.
         Saves these results to the specified output directory.
         """
+        if self.history is None:
+            self.load_history()
         y_pred = self.model.predict(self.X)
         y_true = np.argmax(self.y, axis=1)
         y_pred_classes = np.argmax(y_pred, axis=1)
@@ -334,7 +347,7 @@ class Pipeline:
             json.dump(cm.tolist(), f)
         plt.figure(figsize=(10, 8))
         plt.imshow(cm, interpolation='nearest')
-        plt.title(f'Confusion Matrix - {self.name}')
+        # plt.title(f'Confusion Matrix - {self.name}')
         plt.colorbar()
         tick_marks = np.arange(len(np.unique(y_true)))
         plt.xticks(tick_marks, np.unique(y_true), rotation=45)
@@ -360,7 +373,7 @@ class Pipeline:
                 
             plt.figure(figsize=(10, 8))
             plt.imshow(test_cm, interpolation='nearest')
-            plt.title(f'Test Confusion Matrix - {self.name}')
+            # plt.title(f'Test Confusion Matrix - {self.name}')
             plt.colorbar()
             tick_marks = np.arange(len(np.unique(y_test_true)))
             plt.xticks(tick_marks, np.unique(y_test_true), rotation=45)
@@ -390,7 +403,7 @@ class Pipeline:
 
             plt.figure(figsize=(10, 5))
             plt.plot(history_cost, label='Training Loss')
-            plt.title('Training Loss Over Epochs')
+            # plt.title('Training Loss Over Epochs')
             plt.xlabel('Epochs')
             plt.ylabel('Loss')
             plt.legend()
@@ -400,7 +413,7 @@ class Pipeline:
             if history_accuracy:
                 plt.figure(figsize=(10, 5))
                 plt.plot(history_accuracy, label='Training Accuracy')
-                plt.title('Training Accuracy Over Epochs')
+                # plt.title('Training Accuracy Over Epochs')
                 plt.xlabel('Epochs')
                 plt.ylabel('Accuracy')
                 plt.legend()
@@ -410,7 +423,7 @@ class Pipeline:
             if history_time:
                 plt.figure(figsize=(10, 5))
                 plt.plot(history_time, label='Time per Epoch')
-                plt.title('Time per Epoch Over Training')
+                # plt.title('Time per Epoch Over Training')
                 plt.xlabel('Epochs')
                 plt.ylabel('Time (seconds)')
                 plt.legend()
@@ -420,7 +433,7 @@ class Pipeline:
             if history_time and history_cost:
                 plt.figure(figsize=(10, 5))
                 plt.plot(history_time, history_cost)
-                plt.title('Cost Function Over Time')
+                # plt.title('Cost Function Over Time')
                 plt.xlabel('Time (seconds)')
                 plt.ylabel('Cost')
                 plt.savefig(self.output_dir + '/cost_function_over_time.png')
@@ -429,7 +442,7 @@ class Pipeline:
             if history_cost_validation:
                 plt.figure(figsize=(10, 5))
                 plt.plot(history_cost_validation, label='Validation Loss')
-                plt.title('Validation Loss Over Epochs')
+                # plt.title('Validation Loss Over Epochs')
                 plt.xlabel('Epochs')
                 plt.ylabel('Loss')
                 plt.legend()
@@ -439,7 +452,7 @@ class Pipeline:
             if history_accuracy_validation:
                 plt.figure(figsize=(10, 5))
                 plt.plot(history_accuracy_validation, label='Validation Accuracy')
-                plt.title('Validation Accuracy Over Epochs')
+                # plt.title('Validation Accuracy Over Epochs')
                 plt.xlabel('Epochs')
                 plt.ylabel('Accuracy')
                 plt.legend()
@@ -523,6 +536,7 @@ class Pipeline:
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
             print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
+            self.evaluate()
             return
         
         if self.continue_training:

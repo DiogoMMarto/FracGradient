@@ -12,7 +12,7 @@ from tensorflow.keras import datasets , layers , models
 import tensorflow as tf
 
 from ciphar10.Pipeline import Pipeline, end_graphs
-from ciphar10.Optimizer import FracOptimizer
+from ciphar10.optimizer import FracOptimizer
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -85,7 +85,7 @@ def main():
             "optimizer": Optimizer,
             "metrics": ["accuracy"]
         },
-        output_dir=BASE_DIR + Name_Optimizer.replace(" ","_") + "/",
+        output_dir=BASE_DIR + Name_Optimizer.replace(" ","_").replace("$\\beta$","B") + "/",
         X_test=X_test,
         y_test=y_test,
         data_augmentation=DATA_AUGMENTATION,
@@ -97,9 +97,9 @@ def main():
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracOptimizer B=0.005"),
-        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer B=0.05"),     
-        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer B=0.01"),
+        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracOptimizer $\\beta$=0.005"),
+        (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer $\\beta$=0.05"),     
+        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer $\\beta$=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         # (tf.keras.optimizers.RMSprop(), "RMSprop"),
