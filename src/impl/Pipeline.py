@@ -2,7 +2,7 @@ from impl.NN import NeuralNetwork
 from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
 import matplotlib
-# matplotlib.use('Agg') 
+matplotlib.use('Agg') 
 plt.rcParams.update({
     'font.size': 14,
     'font.weight': 'bold',

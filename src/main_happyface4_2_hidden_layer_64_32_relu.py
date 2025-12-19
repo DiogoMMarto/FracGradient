@@ -30,7 +30,7 @@ from numpy import ndarray
 DATASET_PATH = "datasets/Happy_datasets/datasets/"
 BASE_DIR = "results/output_HappyFace_4_2_hidden_layer_64_32_relu/"
 NUM_EPOCHS = 2000
-VERBOSE = True
+VERBOSE = False
 ARCHITECTURE = [64, 32]
 
 def one_hot(y):
