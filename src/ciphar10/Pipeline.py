@@ -6,6 +6,8 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 import pathlib
+
+from ciphar10.optimizer import FracOptimizer
 matplotlib.use('Agg') 
 matplotlib.use('Agg') 
 plt.rcParams.update({
@@ -29,7 +31,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
             
     # plot the cost function history for each model in the same plot
     plt.figure(figsize=(12, 8))
-    plt.xlabel("Iterations")
+    plt.xlabel("Training Iterations")
     plt.ylabel("Loss")
     # plt.title("Cost function over iterations - " + experiment_name)
     plt.tight_layout()
@@ -55,7 +57,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     
     #plot the accuracy function history for each model in the same plot
     plt.figure(figsize=(12, 8))
-    plt.xlabel("Iterations")
+    plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     # plt.title("Accuracy over Epochs - " + experiment_name)
     plt.tight_layout()
@@ -86,6 +88,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     for Name_Optimizer, history in historys.items():
         plt.plot(history['val_loss'], label=Name_Optimizer)
     plt.legend()
+    m = min([history['val_loss'][0] for history in historys.values() if 'val_loss' in history]) * 1.2
     plt.savefig(BASE_DIR + "val_loss_history_epochs.png")
     print(f"Validation Loss history per epochs saved to {BASE_DIR}val_loss_history_epochs.png")
     
@@ -177,13 +180,13 @@ def plot_gradient_norms(history,
         plt.figure(figsize=figsize)
         for layer, norms in history.items():
             smoothed = moving_average(norms, smooth)
-            plt.plot(smoothed, label=f"{layer} grad norm")
+            plt.plot(smoothed, label=f"{layer} grad norm", alpha=0.7)
         plt.xlabel("Training Step")
         plt.ylabel("$\\alpha$")
         if log_scale:
             plt.yscale("log")
         # plt.title("Gradient Norm History")
-        plt.legend()
+        plt.legend(loc='upper right')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         # plt.show()
@@ -316,7 +319,7 @@ class Pipeline:
         """
         Loads the model and training history from the specified output directory.
         """
-        self.model = models.load_model(self.output_dir + '/model.h5')
+        self.model = models.load_model(self.output_dir + '/model.h5',custom_objects={'FracOptimizer': FracOptimizer})
         with open(self.output_dir + '/history.json', 'r') as f:
             self.history = json.load(f)
         
@@ -331,6 +334,8 @@ class Pipeline:
         """
         if self.history is None:
             self.load_history()
+        if self.model is None:
+            self.load()
         y_pred = self.model.predict(self.X)
         y_true = np.argmax(self.y, axis=1)
         y_pred_classes = np.argmax(y_pred, axis=1)
@@ -388,6 +393,8 @@ class Pipeline:
             history_cost = self.history.get('loss', [])
             history_accuracy = self.history.get('accuracy', [])
             history_time = self.history.get('time', [])
+            if history_time:
+                history_time = np.cumsum(history_time).tolist()
             history_cost_validation = self.history.get('val_loss', [])
             history_accuracy_validation = self.history.get('val_accuracy', [])
             history_grad_norms = self.history.get('grad_norms', {})
@@ -435,7 +442,7 @@ class Pipeline:
                 plt.plot(history_time, history_cost)
                 # plt.title('Cost Function Over Time')
                 plt.xlabel('Time (seconds)')
-                plt.ylabel('Cost')
+                plt.ylabel('Loss')
                 plt.savefig(self.output_dir + '/cost_function_over_time.png')
                 plt.close()
                 
@@ -474,6 +481,21 @@ class Pipeline:
                                     per_layer=True,
                                     figsize=(10, 6))
                 plt.savefig(self.output_dir + '/gradient_norms_per_layer.png')
+                plt.close()
+                plot_gradient_norms(history_grad_norms, 
+                                    smooth=10, 
+                                    log_scale=False, 
+                                    per_layer=False, 
+                                    figsize=(10, 6))
+                plt.savefig(self.output_dir + '/gradient_norms_smooth.png')
+                plt.close()
+                
+                plot_gradient_norms(history_grad_norms,
+                                    smooth=10,
+                                    log_scale=False,
+                                    per_layer=True,
+                                    figsize=(10, 6))
+                plt.savefig(self.output_dir + '/gradient_norms_smooth_per_layer.png')
                 plt.close()
                 
         params = self.compile_kwargs.get("optimizer", {}).get_config() if self.compile_kwargs.get("optimizer") else {}
@@ -536,6 +558,7 @@ class Pipeline:
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
             print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
+            self.load()
             self.evaluate()
             return
         
