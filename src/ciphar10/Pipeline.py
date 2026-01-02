@@ -310,7 +310,7 @@ class Pipeline:
         """
         Saves the model and training history to the specified output directory.
         """
-        self.model.save(self.output_dir + '/model.h5')
+        self.model.save(self.output_dir + '/model.keras')
         if self.history is not None:
             with open(self.output_dir + '/history.json', 'w') as f:
                 json.dump(self.history, f)
@@ -319,7 +319,7 @@ class Pipeline:
         """
         Loads the model and training history from the specified output directory.
         """
-        self.model = models.load_model(self.output_dir + '/model.h5',custom_objects={'FracOptimizer': FracOptimizer})
+        self.model = models.load_model(self.output_dir + '/model.keras',custom_objects={'FracOptimizer': FracOptimizer})
         with open(self.output_dir + '/history.json', 'r') as f:
             self.history = json.load(f)
         
@@ -555,7 +555,7 @@ class Pipeline:
         Trains the model on the provided training data for a specified number of epochs.
         If the output directory already exists and `overwrite` is False, it will not proceed with training.
         """
-        if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
+        if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.keras'):
             print(f"Output directory {self.output_dir} already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
             self.load()

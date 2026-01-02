@@ -9,71 +9,71 @@ def alpha_function(norm_GradCost, beta):
     """
     return 1.0 - (2.0 / np.pi) * tf.math.atan(norm_GradCost * beta)
 
+@tf.keras.utils.register_keras_serializable(package="CustomOptimizers")
 class FracOptimizer(Optimizer):
-    """
-    A custom optimizer implementing a fractional gradient approach.
-
-    This optimizer uses a dynamic alpha value, determined by the `alpha_function`,
-    to modify the gradient updates based on the previous gradient's norm.
-    """
-    def __init__(self, learning_rate=0.001, beta=0.9, alpha_func=alpha_function, name="FracOptimizer", **kwargs):
-        """
-        Initializes the FracOptimizer.
-
-        Args:
-            learning_rate: A float, a `tf.Variable`, or a `tf.keras.optimizers.schedules.LearningRateSchedule`.
-            beta: A float, parameter for the alpha function.
-            alpha_func: A callable function that computes alpha. Defaults to `alpha_function`.
-            name: Optional name for the optimizer.
-            **kwargs: Keyword arguments for the base `Optimizer` class.
-        """
-        super().__init__(learning_rate=learning_rate,name=name, **kwargs)
+    def __init__(self, 
+                 learning_rate=0.001, 
+                 beta=0.9, 
+                 alpha_func=None, # Changed to None default
+                 name="FracOptimizer", 
+                 **kwargs):
+        super().__init__(learning_rate=learning_rate, name=name, **kwargs)
         
         self.beta = beta
-        self.alpha_func = alpha_func
-        self.grad_norms_current_step = {} # FOR TRACKING GRAD NORM
+        
+        if isinstance(alpha_func, str):
+            # Map string name back to the actual function
+            # Ensure 'alpha_function' is available in the global scope
+            if alpha_func == "alpha_function":
+                self.alpha_func = alpha_function 
+            else:
+                raise ValueError(f"Unknown alpha_func: {alpha_func}")
+        else:
+            self.alpha_func = alpha_func or alpha_function
+
+        self.grad_norms_current_step = {}
         self.grad_norm_storage = {}
         self.grad_norm_counters = {}
         self.max_storage_size = 150 * 1563
+        self._built = False
 
     def build(self, var_list):
+        if self._built:
+            return
         super().build(var_list)
         
-        if not hasattr(self, '_built'):
-                # Initialize previous weights and gradients
-                self.prev_weights = []
-                self.prev_grads = []
+        self.prev_weights = []
+        self.prev_grads = []
 
-                for i, var in enumerate(var_list):
-                    print(f"  {i}: {var.name} -> index {i}")
-                    self.prev_weights.append(
-                        self.add_variable_from_reference(
-                            reference_variable=var, 
-                            name=f"prev_weight_{i}", 
-                            initializer="zeros"
-                        )
-                    )
-                    self.prev_grads.append(
-                        self.add_variable_from_reference(
-                            reference_variable=var, 
-                            name=f"prev_grad_{i}",
-                            initializer="zeros"
-                        )
-                    )
-                    self.grad_norm_storage[i] = self.add_variable( # FOR TRACKING GRAD NORM
-                        shape=(self.max_storage_size,),
-                        dtype=tf.float32,
-                        name=f"grad_norms_{i}",
-                        initializer='zeros'
-                    )
-                    # Counter to track how many values we've stored
-                    self.grad_norm_counters[i] = self.add_variable(
-                        shape=(),
-                        dtype=tf.int32,
-                        name=f"grad_norm_counter_{i}",
-                        initializer='zeros'
-                    )
-                self._built = True
+        for i, var in enumerate(var_list):
+            print(f"  {i}: {var.name} -> index {i}")
+            self.prev_weights.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, 
+                    name=f"prev_weight_{i}", 
+                    initializer="zeros"
+                )
+            )
+            self.prev_grads.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, 
+                    name=f"prev_grad_{i}",
+                    initializer="zeros"
+                )
+            )
+            self.grad_norm_storage[i] = self.add_variable(
+                shape=(self.max_storage_size,),
+                dtype=tf.float32,
+                name=f"grad_norms_{i}",
+                initializer='zeros'
+            )
+            self.grad_norm_counters[i] = self.add_variable(
+                shape=(),
+                dtype=tf.int32,
+                name=f"grad_norm_counter_{i}",
+                initializer='zeros'
+            )
+        self._built = True
 
     def _store_grad_norm(self, layer_name, alpha_value): # FOR TRACKING GRAD NORM
         """Store grad norm in TF variable (XLA compatible)."""
@@ -152,15 +152,10 @@ class FracOptimizer(Optimizer):
         return history
     
     def get_config(self):
-        """
-        Returns the configuration of the optimizer.
-        """
+        # 3. Use super().get_config() and ensure values are serializable
         config = super().get_config()
         config.update({
             "beta": self.beta,
-            # Note: Serializing callables (like alpha_func) directly is complex.
-            # Here, we store the function's name. If you load a saved model,
-            # you'll need to re-map this string name back to the actual function.
-            "alpha_func": self.alpha_func.__name__
+            "alpha_func": self.alpha_func.__name__ if hasattr(self.alpha_func, '__name__') else str(self.alpha_func)
         })
         return config
