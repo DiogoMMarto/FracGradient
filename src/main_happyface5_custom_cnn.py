@@ -169,14 +169,14 @@ def main():
     )
     
     D = [
-        # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracOptimizer $\\beta$=0.5"),
-        (FracOptimizer(learning_rate=0.03,beta=0.05), "FracOptimizer $\\beta$=0.05"),
-        (FracOptimizer(learning_rate=0.03,beta=0.005), "FracOptimizer $\\beta$=0.005"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracOptimizer $\\beta$=0.005 alpha2"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracOptimizer $\\beta$=0.01 alpha2"),
-        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracOptimizer $\\beta$=0.05 alpha3"),          
-        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracOptimizer $\\beta$=0.005 alpha4"),          
-        # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracOptimizer $\\beta$=0.01"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracGradient V2 $\\beta$=0.5"),
+        (FracOptimizer(learning_rate=0.03,beta=0.05), "FracGradient V2 $\\beta$=0.05"),
+        (FracOptimizer(learning_rate=0.03,beta=0.005), "FracGradient V2 $\\beta$=0.005"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracGradient V2 $\\beta$=0.005 alpha2"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.01,alpha_func=alpha_function2), "FracGradient V2 $\\beta$=0.01 alpha2"),
+        # (FracOptimizer(learning_rate=0.03,beta=0.05,alpha_func=alpha_function3), "FracGradient V2 $\\beta$=0.05 alpha3"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function4), "FracGradient V2 $\\beta$=0.005 alpha4"),          
+        # (FracOptimizer(learning_rate=0.03,beta=0.01), "FracGradient V2 $\\beta$=0.01"),
         # (tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0001), "SGD 0.001"),
         # (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD 0.1"),

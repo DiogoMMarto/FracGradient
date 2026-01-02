@@ -180,7 +180,7 @@ def plot_gradient_norms(history,
         plt.figure(figsize=figsize)
         for layer, norms in history.items():
             smoothed = moving_average(norms, smooth)
-            plt.plot(smoothed, label=f"{layer} grad norm", alpha=0.7)
+            plt.plot(smoothed, label=f"{layer} $\\alpha(\\cdot)$", alpha=0.7)
         plt.xlabel("Training Step")
         plt.ylabel("$\\alpha$")
         if log_scale:
@@ -197,10 +197,9 @@ def plot_gradient_norms(history,
             axes = [axes]
         for ax, (layer, norms) in zip(axes, history.items()):
             smoothed = moving_average(norms, smooth)
-            ax.plot(smoothed, label=f"{layer} grad norm")
+            ax.plot(smoothed, label=f"{layer} $\\alpha(\\cdot)$")
             if log_scale:
                 ax.set_yscale("log")
-            ax.set_ylabel("Grad Norm")
             ax.legend()
             ax.grid(True, alpha=0.3)
         axes[-1].set_xlabel("Training Step")
@@ -555,11 +554,12 @@ class Pipeline:
         Trains the model on the provided training data for a specified number of epochs.
         If the output directory already exists and `overwrite` is False, it will not proceed with training.
         """
+        print("SAAS" ,tf.io.gfile.exists(self.output_dir + '/model.h5') , self.output_dir+ '/model.h5')
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
             print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
             self.load()
-            self.evaluate()
+            # self.evaluate()
             return
         
         if self.continue_training:

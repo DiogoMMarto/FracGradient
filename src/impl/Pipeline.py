@@ -44,10 +44,15 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     accs_test = []
     optimzer_names = []
     
-    def extract_name(output):
+    def extract_name(output: str):
         #split by "learning" and take the first part
-        if "lr" in output:
-            return output.split("lr")[0].strip()
+        if "\\psi" in output:
+            # split by word "$\\psi=$" and take the last part
+            end = output.split("psi$=")[-1].split("_")[0] 
+            start = output.split("$\\theta$")[0].strip()
+            return start + " " + end
+        if "$\\theta$" in output:
+            return output.split("$\\theta$")[0].strip()
         return output  
     
     for Optimizer, params, output, name in D:
@@ -86,8 +91,8 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     # plt.title("Final Cost vs $\\beta$")
     plt.tight_layout()
     unique_names = list(set(optimzer_names))
-    colors = ["r", "b", "g", "c", "m", "y", "k"]
-    markers = ["x", "o", "*", "+", "v", "^", "s"]
+    colors = ["r", "b", "g", "c", "m", "y", "k", "orange", "purple", "brown", "pink", "gray" , "olive", "cyan"]
+    markers = ["x", "o", "*", "+", "v", "^", "s" , "D", "<", ">", "p", "h"]
     name_to_color = {name: colors[i] for i, name in enumerate(unique_names)}
     name_to_marker = {name: markers[i] for i, name in enumerate(unique_names)}
     for name in unique_names:
@@ -237,22 +242,22 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         # plt.show()
         
         fig, ax = plt.subplots()
+        sc = None
         for i, (name2, points) in enumerate(groups.items()):
             betas, ns, costs = zip(*points)
-            if "xex" not in name2:
-                continue
             sc = ax.scatter(ns, costs, c=betas, cmap='viridis', 
                             vmin=0, vmax=1,s=120, edgecolors='black', 
                             label=name2)
 
-        cbar = plt.colorbar(sc)
+        cbar = plt.colorbar(sc) if sc else plt.colorbar()
         cbar.set_label('$\\beta$', fontweight='bold')
 
         ax.set_xlabel("$\\gamma$")
         ax.set_ylabel("loss")
-        # ax.set_xlim(0, 1.1)
-        ax.set_ylim(0, 1.1)
-
+        ax.set_xlim(-0.1, 5)
+        # y in log scale
+        ax.set_yscale("log")
+        # ax.set_ylim(0, 2.1)
         ax.legend(loc='upper right')
 
         plt.title("Optimization Results (Color = Cost)")
@@ -275,16 +280,22 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         return last_cost
     
     last_cost = { (Optimizer, tuple(params.items()), output, name): load_last_cost(output) for Optimizer, params, output, name in D }
-    # sort the optimizers by last cost
-    sorted_last_cost = sorted(last_cost.items(), key=lambda x: x[1])
-    # print best for each Optimizer class name
+    sorted_last_cost = last_cost.items() #  sorted(last_cost.items(), key=lambda x: x[1])
+    
+    def extract_optimizer_class_name(Optimizer,params):
+        pd = dict(params)
+        if "psi" in pd:
+            type_ = str(pd["psi"]).split("_")[0]
+            return f"FracOptimizerPsi_{type_}"
+        return Optimizer.__name__
+    
     best_per_optimizer = {}
     for (Optimizer, params, output, name), cost in sorted_last_cost:
-        if Optimizer.__name__ not in best_per_optimizer:
-            best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
+        if extract_optimizer_class_name(Optimizer, params) not in best_per_optimizer:
+            best_per_optimizer[extract_optimizer_class_name(Optimizer, params)] = (Optimizer, params, output, name, cost)
         else:
-            if cost < best_per_optimizer[Optimizer.__name__][4]:
-                best_per_optimizer[Optimizer.__name__] = (Optimizer, params, output, name, cost)
+            if cost < best_per_optimizer[extract_optimizer_class_name(Optimizer, params)][4]:
+                best_per_optimizer[extract_optimizer_class_name(Optimizer, params)] = (Optimizer, params, output, name, cost)
     print("Best for each Optimizer class:")
     for Optimizer_name, (Optimizer, params, output, name, cost) in best_per_optimizer.items():
         print("-"*30)
@@ -324,7 +335,8 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.tight_layout()
     y_heigth = float('inf')
     m = float('inf')
-    S = 10
+    S = 100
+    
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
         # name = output.split("/")[-2]
@@ -389,12 +401,14 @@ def gen_names(d: list[tuple]):
         name_str = ""
         for k, v in params.items():
             if k == "learning_rate":
-                k = "lr"
+                k = "$\\theta$"
             if k == "beta":
                 k = "$\\beta$"
             if k == "psi":
                 k = "$\\psi$"
-                v = v.n
+                v = v.__repr__()
+                name_str += f" {k}={v}"
+                continue
             name_str += f" {k}={v:.3f}"
         new_name = f"{name}{name_str}"
         

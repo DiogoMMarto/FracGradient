@@ -91,12 +91,12 @@ def main():
     )
     
     D = [
-        # (FracOptimizer(learning_rate=0.01,beta=0.05), "FracOptimizer $\\beta$=0.05"),
-        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracOptimizer $\\beta$=0.01"),
+        # (FracOptimizer(learning_rate=0.01,beta=0.05), "FracGradient V2 $\\beta$=0.05"),
+        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracGradient V2 $\\beta$=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         # (tf.keras.optimizers.RMSprop(), "RMSprop"),
-        (FracOptimizer(learning_rate=0.01,beta=0.003), "FracOptimizer $\\beta$=0.003"),     
+        (FracOptimizer(learning_rate=0.01,beta=0.003), "FracGradient V2 $\\beta$=0.003"),     
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

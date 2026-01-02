@@ -23,7 +23,7 @@ from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , F
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
 from scipy.io import loadmat
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from sklearn.model_selection import train_test_split
 
 DATASET_PATH = "datasets/ex3data1.mat"
@@ -65,21 +65,84 @@ class psi_gen_xex:
     def to_dict(self):
         return {"type": "psi_gen_xex", "n": self.n}
 
+class psi_gen_sinh:
+    def __init__(self, n):
+        self.n = n
+
+    def __call__(self, x):
+        return np.sinh(x * self.n) / self.n
+    
+    def __repr__(self):
+        return f"sinh_{self.n}_"
+    
+    def __str__(self):
+        return f"sinh_{self.n}_"
+    
+    def to_dict(self):
+        return {"type": "psi_gen_sinh", "n": self.n}
+    
+class sigmoid_psi:
+    def __init__(self,n):
+        self.n = n
+
+    def __call__(self, x):
+        return 1 / (1 + np.exp(-x)) - 0.5
+    
+    def __repr__(self):
+        return f"sigmoid_{self.n}_"
+    
+    def __str__(self):
+        return f"sigmoid_{self.n}_"
+    
+    def to_dict(self):
+        return {"type": "sigmoid", "n": self.n}
+
+class ax_psi:
+    def __init__(self, n):
+        self.n = n
+
+    def __call__(self, x):
+        return self.n * x
+    
+    def __repr__(self):
+        return f"ax_{self.n}_"
+    
+    def __str__(self):
+        return f"ax_{self.n}_"
+    
+    def to_dict(self):
+        return {"type": "ax", "n": self.n}
+    
+class logexp_psi:
+    def __init__(self, n):
+        self.n = np.exp(n)
+
+    def __call__(self, x):
+        return np.log((np.exp(self.n * x) + self.n) / (1 + self.n))
+    
+    def __repr__(self):
+        return f"logexp_{self.n}_"
+    
+    def __str__(self):
+        return f"logexp_{self.n}_"
+    
+    def to_dict(self):
+        return {"type": "logexp", "n": self.n}
+
 def one_hot(y):
     one_hot = np.zeros((y.shape[0], 10))
     for i in range(y.shape[0]):
         one_hot[i][y[i][0]-1] = 1
     return one_hot
 
-def main():
-    mat = loadmat(DATASET_PATH)
-    X = mat["X"]
-    y = mat["y"]
-    y = one_hot(y)
-    
-    X, X_test, y, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-    p_gen = lambda Optimizer,params,output: Pipeline(
+mat = loadmat(DATASET_PATH)
+X = mat["X"]
+y = mat["y"]
+y = one_hot(y)
+
+X, X_test, y, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+p_gen = lambda Optimizer,params,output: Pipeline(
         X, 
         y, 
         NeuralNetwork(
@@ -99,6 +162,12 @@ def main():
         X_test=X_test,
         y_test=y_test
     )
+
+def run_pipeline(Optimizer,params,output):
+        p = p_gen(Optimizer,params,output)
+        p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
+
+def main():
     
     D = [
         ( ClassicOptimizer, {"learning_rate":2}, BASE_DIR + "classical_2/" , "SGD"),
@@ -113,22 +182,21 @@ def main():
         [
          (FracOptimizer , {"learning_rate":[1,1.5,2],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[1],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
-         (FracOptimizerPsi , {"learning_rate":[0.5,0.1],"beta":list(2**np.arange(-5,2.1,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.05,0.01],"beta":list(2**np.arange(-3,0,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.1,0.05,0.01,0.5,1],"beta":list(2**np.arange(-3,0.1,0.5)),"psi":[psi_gen_xex(n) for n in [-1,-0.5,-0.25,-0.1,0.1,0.25,0.5,1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1,1.01,1.1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         
+        #  (FracOptimizerPsi , {"learning_rate":[0.5,0.1],"beta":list(2**np.arange(-5,2.1,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+        #  (FracOptimizerPsi , {"learning_rate":[0.05,0.01],"beta":list(2**np.arange(-3,0,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+        #  (FracOptimizerPsi , {"learning_rate":[0.1,0.05,0.01,0.5,1],"beta":list(2**np.arange(-3,0.1,0.5)),"psi":[psi_gen_xex(n) for n in [-1,-0.5,-0.25,-0.1,0.1,0.25,0.5,1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+        #  (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1,1.01,1.1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+        #  (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[psi_gen_sinh(n) for n in [0.05,0.15,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[sigmoid_psi(n) for n in [0.5,1,1.5,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[ax_psi(n) for n in [0.1,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[logexp_psi(n) for n in [-2,-1,-0.5,-0.1,0,0.1,0.5,1,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
         ]
     )
     
     D.extend(D2)
     
-    def run_pipeline(Optimizer,params,output):
-        p = p_gen(Optimizer,params,output)
-        p.run(epochs=NUM_EPOCHS,verbose=VERBOSE)
-    
-    if False:
+    if True:
         with ThreadPoolExecutor(max_workers=12) as executor:
             futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
             for future in futures:
