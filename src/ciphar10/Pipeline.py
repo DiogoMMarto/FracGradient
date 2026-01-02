@@ -159,8 +159,11 @@ class LossPerIterationCallback(tf.keras.callbacks.Callback):
         
 # ---- Visualization Functions ----
 def moving_average(values, window=1):
-    if window <= 1:
-        return np.array(values)
+    # Convert to numpy array just in case
+    values = np.array(values)
+    if window <= 1 or len(values) < window:
+        return values
+
     kernel = np.ones(window) / window
     return np.convolve(values, kernel, mode="valid")
 
@@ -177,6 +180,9 @@ def plot_gradient_norms(history,
         per_layer (bool): Whether to create separate subplots per layer.
         figsize (tuple): Figure size.
     """
+    if not history or all(len(v) == 0 for v in history.values()):
+        print("No gradient data available to plot.")
+        return
     if not per_layer:
         plt.figure(figsize=figsize)
         for layer, norms in history.items():
@@ -601,8 +607,8 @@ class Pipeline:
         self.history['grad_norms'] = [callback.get_history() for callback in callbacks if isinstance(callback, GradNormCollectorCallback)][0]
         self.history['loss_per_iteration'] = [callback.get_history() for callback in callbacks if isinstance(callback, LossPerIterationCallback)][0]
         os.makedirs(self.output_dir, exist_ok=True)
-        self.evaluate()
         self.save()
+        self.evaluate()
         print(f"Training completed and results saved to {self.output_dir}.")
         
         
