@@ -23,7 +23,7 @@ else:
 
 import os
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 NUM_CLASSES = 10
 DATA_AUGMENTATION = False
 BASE_DIR = "results/output_cifar10_custom_cnn_no_data_augmentation/"

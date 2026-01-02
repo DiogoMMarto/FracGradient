@@ -555,11 +555,11 @@ class Pipeline:
         Trains the model on the provided training data for a specified number of epochs.
         If the output directory already exists and `overwrite` is False, it will not proceed with training.
         """
-        if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.keras'):
+        if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.keras') and os.path.exists(self.output_dir + '/model.keras'):
             print(f"Output directory {self.output_dir} already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
             self.load()
-            self.evaluate()
+            # self.evaluate()
             return
         
         if self.continue_training:

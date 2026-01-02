@@ -23,7 +23,7 @@ else:
 
 import os
 
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
 BASE_DIR = "results/output_cifar10_mobilenetv2_data_augmentation/"
