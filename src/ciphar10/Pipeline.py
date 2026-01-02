@@ -554,7 +554,6 @@ class Pipeline:
         Trains the model on the provided training data for a specified number of epochs.
         If the output directory already exists and `overwrite` is False, it will not proceed with training.
         """
-        print("SAAS" ,tf.io.gfile.exists(self.output_dir + '/model.h5') , self.output_dir+ '/model.h5')
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
             print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
