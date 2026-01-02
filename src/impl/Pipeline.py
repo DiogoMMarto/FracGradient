@@ -1,3 +1,4 @@
+from collections import defaultdict
 from impl.NN import NeuralNetwork
 from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
@@ -83,24 +84,32 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             test_classification_report = get_scores(os.path.join(BASE_DIR, dir, "test_classification_report.txt"))
             accs_test.append(test_classification_report["accuracy"])
             optimzer_names.append(extract_name(name))
+            
     # if the optimizers have params beta, plot the final cost vs beta
-    plt.figure()
-    plt.xlabel("$\\beta$")
-    plt.xscale("log")
-    plt.ylabel("Loss")
-    # plt.title("Final Cost vs $\\beta$")
-    plt.tight_layout()
+    plot_dir = os.path.join(BASE_DIR, "final_cost_vs_beta")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+
     unique_names = list(set(optimzer_names))
-    colors = ["r", "b", "g", "c", "m", "y", "k", "orange", "purple", "brown", "pink", "gray" , "olive", "cyan"]
-    markers = ["x", "o", "*", "+", "v", "^", "s" , "D", "<", ">", "p", "h"]
-    name_to_color = {name: colors[i] for i, name in enumerate(unique_names)}
-    name_to_marker = {name: markers[i] for i, name in enumerate(unique_names)}
+    colors = ["r", "b", "g", "c", "m", "y", "k", "orange", "purple", "brown", "pink", "gray", "olive", "cyan"]
+    markers = ["x", "o", "*", "+", "v", "^", "s", "D", "<", ">", "p", "h"]
+
+    # Ensure we don't run out of colors/markers if there are many optimizers
+    name_to_color = {name: colors[i % len(colors)] for i, name in enumerate(unique_names)}
+    name_to_marker = {name: markers[i % len(markers)] for i, name in enumerate(unique_names)}
+
+    filtered_costs = [i for i in costs if i > 0] if len(costs) > 0 else [0]
+    y_min = min(filtered_costs) - 0.1
+    y_max = min(filtered_costs) + 1.5
+
     for name in unique_names:
-        # Filter the data for the current optimizer
+        plt.figure()
+        plt.xlabel("$\\beta$")
+        plt.xscale("log")
+        plt.ylabel("Loss")
+        plt.title(f"Final Cost vs $\\beta$ - {name}")
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
         y_data = [costs[i] for i, n in enumerate(optimzer_names) if n == name]
-
-        # Plot the filtered data with a single color and marker
         plt.scatter(
             x_data,
             y_data,
@@ -108,88 +117,52 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             marker=name_to_marker[name],
             label=name 
         )
-    costs = [ i for i in costs if i > 0 ] if len(costs) > 0 else [0]
-    plt.ylim(min(costs) - 0.1, min(costs) + 1.5)
-    # add legend of the unique names
-    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
-    labels = list(name_to_color.keys())
-    plt.legend(handles, labels)
-    plt.savefig(BASE_DIR + "final_cost_vs_beta.png")
+        plt.ylim(y_min, y_max)
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name}.png")
+        plt.savefig(save_path)
+        plt.close()
     
-    # plot acc vcs beta
-    plt.figure()
-    plt.xlabel("$\\beta$")
-    # logscale x-axis
-    plt.xscale("log")
-    plt.ylabel("Accuracy")
-    # limit y-axis to [0, 1]
-    # plt.title("Accuracy vs $\\beta$")
-    plt.tight_layout()
+    plot_dir = os.path.join(BASE_DIR, "acc_vs_beta")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+
     for name in unique_names:
-        # Filter the data for the current optimizer
+        plt.figure()
+        plt.xlabel("$\\beta$")
+        plt.xscale("log")
+        plt.ylabel("Accuracy")
+        plt.title(f"Accuracy vs $\\beta$ - {name}")
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
         y_data = [accs[i] for i, n in enumerate(optimzer_names) if n == name]
+        plt.scatter(
+            x_data,
+            y_data,
+            c=name_to_color[name],
+            marker=name_to_marker[name],
+            label=name 
+        )
+        plt.ylim(min(accs) - 0.1, 1.05)
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name}.png")
+        plt.savefig(save_path)
+        plt.close()
+    
+    plot_dir = os.path.join(BASE_DIR, "test_acc_vs_beta")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
 
-        # Plot the filtered data with a single color and marker
-        plt.scatter(
-            x_data,
-            y_data,
-            c=name_to_color[name],
-            marker=name_to_marker[name],
-            label=name 
-        )
-    plt.ylim(min(accs) - 0.1, 1.05)
-    # add legend of the unique names
-    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
-    labels = list(name_to_color.keys())
-    plt.legend(handles, labels)
-    plt.savefig(BASE_DIR + "acc_vs_beta.png")
-    
-    plt.figure()
-    plt.xlabel("$\\beta$")
-    # logscale x-axis
-    plt.xscale("log")
-    plt.ylabel("Accuracy")
-    # limit y-axis to [0, 1]
-    # plt.title("Accuracy vs $\\beta$")
-    plt.tight_layout()
-    m = 1
+    m = min(accs_test) if len(accs_test) > 0 else 0
     for name in unique_names:
-        # Filter the data for the current optimizer
-        x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
-        y_data = [accs[i] for i, n in enumerate(optimzer_names) if n == name]
-        m = min(min(y_data),m)
-        # Plot the filtered data with a single color and marker
-        plt.scatter(
-            x_data,
-            y_data,
-            c=name_to_color[name],
-            marker=name_to_marker[name],
-            label=name 
-        )
-    plt.ylim(m-0.05, 1.05)
-    # add legend of the unique names
-    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
-    labels = list(name_to_color.keys())
-    plt.legend(handles, labels)
-    plt.savefig(BASE_DIR + "acc_vs_beta.png")
-    
-    plt.figure()
-    plt.xlabel("$\\beta$")
-    # logscale x-axis
-    plt.xscale("log")
-    plt.ylabel("Test Accuracy")
-    # limit y-axis to [0, 1]
-    # plt.title("test Accuracy vs $\\beta$")
-    plt.tight_layout()
-    m = 1
-    for name in unique_names:
-        # Filter the data for the current optimizer
+        plt.figure()
+        plt.xlabel("$\\beta$")
+        plt.xscale("log")
+        plt.ylabel("Test Accuracy")
+        plt.title(f"Test Accuracy vs $\\beta$ - {name}")
         x_data = [betas[i] for i, n in enumerate(optimzer_names) if n == name]
         y_data = [accs_test[i] for i, n in enumerate(optimzer_names) if n == name]
-        m = min(min(y_data),m)
-
-        # Plot the filtered data with a single color and marker
         plt.scatter(
             x_data,
             y_data,
@@ -197,48 +170,51 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
             marker=name_to_marker[name],
             label=name 
         )
-    plt.ylim(m-0.05, 1.05)
-    # add legend of the unique names
-    handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for name, color in name_to_color.items()]
-    labels = list(name_to_color.keys())
-    plt.legend(handles, labels)
-    plt.savefig(BASE_DIR + "test_acc_vs_beta.png")
+        plt.ylim(m - 0.05, 1.05)
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name}.png")
+        plt.savefig(save_path)
+        plt.close()
+        
     
-    # 3D plot of beta and n vs cost for optimizer FracOptimizerPSI only , using matplotlib's 3D plotting
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel("$\\beta$")
-    ax.set_ylabel("$\\gamma$")
-    ax.set_zlabel("Loss")
-    # ax.set_title("Final Cost vs $\\beta$ and n")
-    from collections import defaultdict
+    plot_dir = os.path.join(BASE_DIR, "beta_gamma_cost")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
 
     groups = defaultdict(list)
     for Optimizer, params, output, name in D:
         if Optimizer == FracOptimizerPsi:
-            if not os.path.exists(output + "history.json"):
+            history_path = os.path.join(output, "history.json")
+            if not os.path.exists(history_path):
                 continue
-            history = json.load(open(output + "history.json"))
+            with open(history_path) as f:
+                history = json.load(f)
+                
             final_cost = history["cost"][-1]
             pp = dict(params)
             beta = pp.get("beta", 1)
             n = pp.get("psi", "")
-            n2 = n.n
+            n2 = n.n 
             name2 = str(n).split("_")[0]
             groups[name2].append((beta, n2, final_cost))
 
-    if len(groups) > 0:
-        for name2, points in groups.items():
-            betas, ns, costs = zip(*points)
-            ax.scatter(betas, ns, costs, label=name2)
-
+    for name2, points in groups.items():
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111, projection='3d')
+        betas, ns, costs = zip(*points)
+        ax.scatter(betas, ns, costs, label=name2, s=50)
+        ax.set_xlabel("$\\beta$")
+        ax.set_ylabel("$\\gamma$")
+        ax.set_zlabel("Loss")
+        ax.set_title(f"3D Loss Surface: {name2}")
         ax.set_zlim(0, 2.5)
-        ax.set_xlim(0, 1)
-        ax.set_ylim(-1, 1)
-        ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
         ax.view_init(elev=10, azim=150) 
         plt.legend()
-        plt.savefig(BASE_DIR + "beta_n_cost.png")
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name2}.png")
+        plt.savefig(save_path)
+        plt.close(fig)
         # plt.show()
         
         fig, ax = plt.subplots()
@@ -254,15 +230,11 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
 
         ax.set_xlabel("$\\gamma$")
         ax.set_ylabel("loss")
-        ax.set_xlim(-0.1, 5)
-        # y in log scale
         ax.set_yscale("log")
-        # ax.set_ylim(0, 2.1)
         ax.legend(loc='upper right')
 
         plt.title("Optimization Results (Color = Cost)")
         plt.savefig(BASE_DIR + "beta_n_cost_2d.png", bbox_inches='tight')
-        # plt.show()
     
     def load_last_cost(output):
         if not os.path.exists(output + "history.json"):

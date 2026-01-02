@@ -31,7 +31,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
             
     # plot the cost function history for each model in the same plot
     plt.figure(figsize=(12, 8))
-    plt.xlabel("Training Iterations")
+    plt.xlabel("Iteration")
     plt.ylabel("Loss")
     # plt.title("Cost function over iterations - " + experiment_name)
     plt.tight_layout()
@@ -54,6 +54,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
     # print(f"Max cost at iteration 1000: {max_cost}")
     plt.ylim(0, max_cost * 1.1)
     plt.savefig(BASE_DIR + "cost_history_iterations.png")
+    print(f"Cost history per iterations saved to {BASE_DIR}cost_history_iterations.png")
     
     #plot the accuracy function history for each model in the same plot
     plt.figure(figsize=(12, 8))
@@ -180,9 +181,9 @@ def plot_gradient_norms(history,
         plt.figure(figsize=figsize)
         for layer, norms in history.items():
             smoothed = moving_average(norms, smooth)
-            plt.plot(smoothed, label=f"{layer} $\\alpha(\\cdot)$", alpha=0.7)
-        plt.xlabel("Training Step")
-        plt.ylabel("$\\alpha$")
+            plt.plot(smoothed, label=f"Layer {layer}", alpha=0.7)
+        plt.xlabel("Iteration")
+        plt.ylabel("$\\alpha(\\cdot)$")
         if log_scale:
             plt.yscale("log")
         # plt.title("Gradient Norm History")
@@ -197,13 +198,13 @@ def plot_gradient_norms(history,
             axes = [axes]
         for ax, (layer, norms) in zip(axes, history.items()):
             smoothed = moving_average(norms, smooth)
-            ax.plot(smoothed, label=f"{layer} $\\alpha(\\cdot)$")
+            ax.plot(smoothed, label=f"Layer {layer}")
             if log_scale:
                 ax.set_yscale("log")
             ax.legend()
             ax.grid(True, alpha=0.3)
-        axes[-1].set_xlabel("Training Step")
-        plt.suptitle("$\\alpha$ per Layer")
+        axes[-1].set_xlabel("Iteration")
+        # plt.suptitle("$\\alpha(\\cdot)$ per Layer")
         plt.tight_layout()
         # plt.show()
         
@@ -221,7 +222,7 @@ def plot_loss_per_iteration(history,
     plt.figure(figsize=figsize)
     smoothed = moving_average(history, smooth)
     plt.plot(smoothed, label="Loss per Iteration")
-    plt.xlabel("Training Step")
+    plt.xlabel("Iteration")
     plt.ylabel("Loss")
     if log_scale:
         plt.yscale("log")
@@ -482,7 +483,7 @@ class Pipeline:
                 plt.savefig(self.output_dir + '/gradient_norms_per_layer.png')
                 plt.close()
                 plot_gradient_norms(history_grad_norms, 
-                                    smooth=10, 
+                                    smooth=100, 
                                     log_scale=False, 
                                     per_layer=False, 
                                     figsize=(10, 6))
@@ -490,7 +491,7 @@ class Pipeline:
                 plt.close()
                 
                 plot_gradient_norms(history_grad_norms,
-                                    smooth=10,
+                                    smooth=100,
                                     log_scale=False,
                                     per_layer=True,
                                     figsize=(10, 6))
@@ -555,10 +556,10 @@ class Pipeline:
         If the output directory already exists and `overwrite` is False, it will not proceed with training.
         """
         if not self.overwrite and tf.io.gfile.exists(self.output_dir + '/model.h5'):
-            print("Output directory already exists. If you want to overwrite it, set `overwrite=True`.")
+            print(f"Output directory {self.output_dir} already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
             self.load()
-            # self.evaluate()
+            self.evaluate()
             return
         
         if self.continue_training:

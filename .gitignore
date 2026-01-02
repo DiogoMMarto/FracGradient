@@ -1,9 +1,12 @@
+.venv*
+Untitled*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 src/nn/1/*
-*.h5
+# *.h5
 
 # C extensions
 *.so
