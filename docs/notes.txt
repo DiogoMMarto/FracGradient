@@ -1,0 +1,30 @@
+images/mnistDataset.png 1
+images/happyfaceDataset.png 2
+images/ciphar10Dataset.png 3
+
+images/mnist1Loss.png 4
+images/mnist2Loss.png 5
+images/mnist3Loss.png 6
+images/happy1Loss.png 8 
+images/happy2Loss.png 9
+images/happy3Loss.png 10 
+images/happy4Loss.png 11
+
+images/mnist4Loss.png 7
+images/happy5Loss.png 12 
+images/ciphar10CNDGLoss.png 15
+images/ciphar10CNDGLossE.png 16
+images/ciphar10CDGLoss.png 17
+images/ciphar10ResNetLoss.png 19
+images/ciphar10MNetLoss.png 20
+images/ciphar10MNetLossE.png 21
+
+images/happy5g1.png 13
+images/happy5g2.png 14
+images/cifar10mnetg1.png 22
+
+- put images in 
+- Update tabelas to have RMNSprop and maybe text  
+- Run maybe RMSPROP on all 
+- Do k fold cross validation in at least the simple NN  e acrescentar a cor nas tabelas.
+- Write more on Psi
