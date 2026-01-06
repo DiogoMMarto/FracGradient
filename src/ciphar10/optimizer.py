@@ -34,7 +34,7 @@ class FracOptimizer(Optimizer):
         self.grad_norms_current_step = {} # FOR TRACKING GRAD NORM
         self.grad_norm_storage = {}
         self.grad_norm_counters = {}
-        self.max_storage_size = 150 * 1563
+        self.max_storage_size = 150 * 1563 # FOR TRACKING GRAD NORM
 
     def build(self, var_list):
         super().build(var_list)
@@ -116,7 +116,7 @@ class FracOptimizer(Optimizer):
                 norm_grad = tf.norm(prev_grad)
                 alpha = self.alpha_func(norm_grad, self.beta)
                 
-                # self._store_grad_norm(variable_index, alpha) #    FOR TRACKING GRAD NORM
+                self._store_grad_norm(variable_index, alpha) #    FOR TRACKING GRAD NORM
 
                 diff = tf.abs(variable - prev_weight)
         

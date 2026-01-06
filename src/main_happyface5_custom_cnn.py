@@ -170,6 +170,9 @@ def main():
     
     D = [
         # (FracOptimizer(learning_rate=0.03,beta=0.5), "FracGradient V2 $\\beta$=0.5"),
+        (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
+        (tf.keras.optimizers.Adam(), "Adam"),
+        (tf.keras.optimizers.RMSprop(), "RMSprop"),
         (FracOptimizer(learning_rate=0.03,beta=0.05), "FracGradient V2 $\\beta$=0.05"),
         (FracOptimizer(learning_rate=0.03,beta=0.005), "FracGradient V2 $\\beta$=0.005"),
         # (FracOptimizer(learning_rate=0.03,beta=0.005,alpha_func=alpha_function2), "FracGradient V2 $\\beta$=0.005 alpha2"),
@@ -182,10 +185,7 @@ def main():
         # (tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.0001), "SGD 0.1"),
         # (tf.keras.optimizers.SGD(learning_rate=1.0, momentum=0.0001), "SGD 1"),
         # (tf.keras.optimizers.SGD(learning_rate=0.05, momentum=0.0001), "SGD 0.05"),
-        (tf.keras.optimizers.SGD(learning_rate=0.03, momentum=0.0001), "SGD"),
         # (tf.keras.optimizers.SGD(learning_rate=0.5, momentum=0.0001), "SGD 0.5"),
-        (tf.keras.optimizers.Adam(), "Adam"),
-        (tf.keras.optimizers.RMSprop(), "RMSprop"),
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

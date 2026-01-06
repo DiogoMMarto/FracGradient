@@ -24,10 +24,10 @@ else:
 
 import os
 
-BATCH_SIZE = 32
+BATCH_SIZE = 256
 NUM_CLASSES = 10
 DATA_AUGMENTATION = True
-BASE_DIR = "results/output_cifar10_custom_cnn_data_augmentation/"
+BASE_DIR = "results/output_cifar10_custom_cnn_data_augmentation_2/"
 os.makedirs(BASE_DIR, exist_ok=True)
 NUM_EPOCHS = 150
 VERBOSE = True
@@ -97,12 +97,12 @@ def main():
     )
     
     D = [
-        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracGradient V2 $\\beta$=0.005"),
         # (FracOptimizer(learning_rate=0.01,beta=0.05), "FracGradient V2 $\\beta$=0.05"),     
-        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracGradient V2 $\\beta$=0.01"),
         (tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.0001), "SGD"),
         (tf.keras.optimizers.Adam(), "Adam"),
         (tf.keras.optimizers.RMSprop(), "RMSprop"),
+        (FracOptimizer(learning_rate=0.01,beta=0.005), "FracGradient V2 $\\beta$=0.005"),
+        (FracOptimizer(learning_rate=0.01,beta=0.01), "FracGradient V2 $\\beta$=0.01"),
     ]
     
     def run_pipeline(Optimizer,Name_Optimizer):

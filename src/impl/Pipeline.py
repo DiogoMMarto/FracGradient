@@ -307,7 +307,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.tight_layout()
     y_heigth = float('inf')
     m = float('inf')
-    S = 100
+    S = 500
     
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
