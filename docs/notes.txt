@@ -28,3 +28,4 @@ images/cifar10mnetg1.png 22
 - Run maybe RMSPROP on all 
 - Do k fold cross validation in at least the simple NN  e acrescentar a cor nas tabelas.
 - Write more on Psi
+- Check if table and text are consistent with plot

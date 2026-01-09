@@ -52,7 +52,7 @@ def end_graphs(BASE_DIR,D,experiment_name):
             if cost_at_1000 > max_cost:
                 max_cost = cost_at_1000
     # print(f"Max cost at iteration 1000: {max_cost}")
-    plt.ylim(0, max_cost * 1.1)
+    plt.ylim(0, 0.7)
     plt.savefig(BASE_DIR + "cost_history_iterations.png")
     print(f"Cost history per iterations saved to {BASE_DIR}cost_history_iterations.png")
     
@@ -137,6 +137,8 @@ class GradNormCollectorCallback(tf.keras.callbacks.Callback):
         optimizer = self.model.optimizer
         if hasattr(optimizer, 'get_grad_norms_history'):
             self.final_grad_norms = optimizer.get_grad_norms_history()
+        else:
+            print("Optimizer does not have a get_grad_norms_history method.")
     
     def get_history(self):
         """Return the collected grad norms history."""
@@ -193,9 +195,10 @@ def plot_gradient_norms(history,
         if log_scale:
             plt.yscale("log")
         # plt.title("Gradient Norm History")
-        plt.legend(loc='upper right')
+        plt.legend(loc='lower right')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
+        plt.ylim(0.6,1.05)
         # plt.show()
     else:
         n_layers = len(history)
@@ -209,7 +212,8 @@ def plot_gradient_norms(history,
                 ax.set_yscale("log")
             ax.legend()
             ax.grid(True, alpha=0.3)
-        axes[-1].set_xlabel("Iteration")
+            ax.set_xlabel("Iteration")
+            ax.set_ylabel("$\\alpha(\\cdot)$")
         # plt.suptitle("$\\alpha(\\cdot)$ per Layer")
         plt.tight_layout()
         # plt.show()
@@ -565,7 +569,7 @@ class Pipeline:
             print(f"Output directory {self.output_dir} already exists. If you want to overwrite it, set `overwrite=True`.")
             self.report_to_json()
             self.load()
-            # self.evaluate()
+            self.evaluate()
             return
         
         if self.continue_training:
