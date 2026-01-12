@@ -39,12 +39,12 @@ class psi_gen_power:
 
     def __call__(self, x):
         return np.power(x, self.n)
-    
-    def __repr__(self):
-        return f"power_{self.n}_"
-    
+
     def __str__(self):
         return f"power_{self.n}_"
+    
+    def __repr__(self):
+        return f"$x^{self.n}$"
     
     def to_dict(self):
         return {"type": "psi_gen_power", "n": self.n}
@@ -56,11 +56,11 @@ class psi_gen_xex:
     def __call__(self, x):
         return x * np.exp(x * self.n)
     
-    def __repr__(self):
-        return f"xex_{self.n}_"
-    
     def __str__(self):
         return f"xex_{self.n}_"
+    
+    def __repr__(self):
+        return f"$x e^({self.n}x)$"
     
     def to_dict(self):
         return {"type": "psi_gen_xex", "n": self.n}
@@ -72,11 +72,11 @@ class psi_gen_sinh:
     def __call__(self, x):
         return np.sinh(x * self.n) / self.n
     
-    def __repr__(self):
-        return f"sinh_{self.n}_"
-    
     def __str__(self):
         return f"sinh_{self.n}_"
+    
+    def __repr__(self):
+        return f"$sinh({self.n}x) {self.n}$"
     
     def to_dict(self):
         return {"type": "psi_gen_sinh", "n": self.n}
@@ -88,11 +88,11 @@ class sigmoid_psi:
     def __call__(self, x):
         return 1 / (1 + np.exp(-x)) - 0.5
     
-    def __repr__(self):
-        return f"sigmoid_{self.n}_"
-    
     def __str__(self):
         return f"sigmoid_{self.n}_"
+    
+    def __repr__(self):
+        return f"${{sigmoid}}({self.n}x)$"
     
     def to_dict(self):
         return {"type": "sigmoid", "n": self.n}
@@ -104,11 +104,11 @@ class ax_psi:
     def __call__(self, x):
         return self.n * x
     
-    def __repr__(self):
-        return f"ax_{self.n}_"
-    
     def __str__(self):
         return f"ax_{self.n}_"
+    
+    def __repr__(self):
+        return f"${self.n} x$"
     
     def to_dict(self):
         return {"type": "ax", "n": self.n}
@@ -121,7 +121,7 @@ class logexp_psi:
         return np.log((np.exp(self.n * x) + self.n) / (1 + self.n))
     
     def __repr__(self):
-        return f"logexp_{self.n}_"
+        return f"${{logexp}}({self.n:5.3f}x)$"
     
     def __str__(self):
         return f"logexp_{self.n}_"
@@ -170,17 +170,19 @@ def run_pipeline(Optimizer,params,output):
 def main():
     
     D = [
-        ( ClassicOptimizer, {"learning_rate":2}, BASE_DIR + "classical_2/" , "SGD"),
+        ( ClassicOptimizer, {"learning_rate":1}, BASE_DIR + "classical_2/" , "SGD"),
+        ( ClassicOptimizer, {"learning_rate":0.5}, BASE_DIR + "classical_3/" , "SGD 2"),
+        
         ( AdaptiveLearningRateOptimizer, {"initial_learning_rate":1}, BASE_DIR + "adaptive/" , "ALR"),
 
-        ( FracOptimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracB05/" , "FracGradient V2"),
+        # ( FracOptimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracB05/" , "FracGradient V2"),
         ( FracAdap, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracAdapB05/", "FracGradient V2 Adaptive"),
         # ( FracOptimizer2, {"learning_rate":1.5,"beta":0.5}, BASE_DIR + "frac2B01/", "FracGradient"),
     ]
     
     D2 = gen_grid_search(
         [
-         (FracOptimizer , {"learning_rate":[1,1.5,2],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracOptimizer , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
          (FracAdap , {"learning_rate":[1],"beta":list(2**np.arange(-6,2.1,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
         #  (FracOptimizerPsi , {"learning_rate":[0.5,0.1],"beta":list(2**np.arange(-5,2.1,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
         #  (FracOptimizerPsi , {"learning_rate":[0.05,0.01],"beta":list(2**np.arange(-3,0,0.5)),"psi":[psi_gen_power(n) for n in [2/3,4/5,1,6/5,4/3,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
@@ -189,7 +191,7 @@ def main():
         #  (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[psi_gen_sinh(n) for n in [0.05,0.15,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[sigmoid_psi(n) for n in [0.5,1,1.5,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[ax_psi(n) for n in [0.1,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[ax_psi(n) for n in [0.1,0.5,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[logexp_psi(n) for n in [-2,-1,-0.5,-0.1,0,0.1,0.5,1,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
         ]
     )
@@ -216,7 +218,7 @@ def main():
         after = layers[i+1] 
         number_of_models_params += previous * after
     
-    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST","MNIST 1 - 1 hidden layer")
+    end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST","MNIST 5 - 1 hidden layer")
     
 if __name__ == "__main__":
     main()    

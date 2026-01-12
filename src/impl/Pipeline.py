@@ -49,7 +49,19 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         #split by "learning" and take the first part
         if "\\psi" in output:
             # split by word "$\\psi=$" and take the last part
-            end = output.split("psi$=")[-1].split("_")[0] 
+            end = output.split("psi$=")[-1]
+            if "sinh" in end:
+                end = "sinh"
+            if "sigmoid" in end:
+                end = "sigmoid"
+            if "x^" in end:
+                end = "power"
+            if "x e^" in end:
+                end = "xex"
+            if " x" in end:
+                end = "ax"
+            if "logexp" in end:
+                end = "logexp"
             start = output.split("$\\theta$")[0].strip()
             return start + " " + end
         if "$\\theta$" in output:
@@ -236,6 +248,84 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         plt.title("Optimization Results (Color = Cost)")
         plt.savefig(BASE_DIR + "beta_n_cost_2d.png", bbox_inches='tight')
     
+    plot_dir = os.path.join(BASE_DIR, "acc_vs_gamma")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+        
+    for name2, points in groups.items():
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111)
+        betas, ns, costs = zip(*points)
+        accs = []
+        for Optimizer, params, output, name in D:
+            if Optimizer == FracOptimizerPsi:
+                pp = dict(params)
+                n = pp.get("psi", "")
+                n2 = n.n 
+                name3 = str(n).split("_")[0]
+                if name3 == name2:
+                    classification_report = get_scores(os.path.join(output, "classification_report.txt"))
+                    accs.append(classification_report["accuracy"])
+        ax.scatter(ns, accs, label=name2, s=50)
+        ax.set_xlabel("$\\gamma$")
+        ax.set_ylabel("Accuracy")
+        ax.set_title(f"Accuracy vs $\\gamma$: {name2}")
+        ax.set_ylim(0, 1.05)
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name2}.png")
+        plt.savefig(save_path)
+        plt.close(fig)
+        
+    plot_dir = os.path.join(BASE_DIR, "final_costs_gamma")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+        
+    for name2, points in groups.items():
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111)
+        betas, ns, costs = zip(*points)
+        ax.scatter(ns, costs, label=name2, s=50)
+        ax.set_xlabel("$\\gamma$")
+        ax.set_ylabel("Loss")
+        ax.set_title(f"Final Costs vs $\\gamma$: {name2}")
+        # ax.set_ylim(0, 2.5)
+        ax.set_yscale("log")
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name2}.png")
+        plt.savefig(save_path)
+        plt.close(fig)
+        
+    plot_dir = os.path.join(BASE_DIR, "test_acc_vs_gamma")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+        
+    for name2, points in groups.items():
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111)
+        betas, ns, costs = zip(*points)
+        accs_test = []
+        for Optimizer, params, output, name in D:
+            if Optimizer == FracOptimizerPsi:
+                pp = dict(params)
+                n = pp.get("psi", "")
+                n2 = n.n 
+                name3 = str(n).split("_")[0]
+                if name3 == name2:
+                    test_classification_report = get_scores(os.path.join(output, "test_classification_report.txt"))
+                    accs_test.append(test_classification_report["accuracy"])
+        ax.scatter(ns, accs_test, label=name2, s=50)
+        ax.set_xlabel("$\\gamma$")
+        ax.set_ylabel("Test Accuracy")
+        ax.set_title(f"Test Accuracy vs $\\gamma$: {name2}")
+        ax.set_ylim(0, 1.05)
+        plt.legend()
+        plt.tight_layout()
+        save_path = os.path.join(plot_dir, f"{name2}.png")
+        plt.savefig(save_path)
+        plt.close(fig)
+    
     def load_last_cost(output):
         if not os.path.exists(output + "history.json"):
             print(f"History file {output + 'history.json'} does not exist, skipping.")
@@ -263,39 +353,51 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     
     best_per_optimizer = {}
     for (Optimizer, params, output, name), cost in sorted_last_cost:
-        if extract_optimizer_class_name(Optimizer, params) not in best_per_optimizer:
-            best_per_optimizer[extract_optimizer_class_name(Optimizer, params)] = (Optimizer, params, output, name, cost)
+        optimizer_class_name = extract_optimizer_class_name(Optimizer, params)
+        test_classification_report = get_scores(output + "test_classification_report.txt") if os.path.exists(output + "test_classification_report.txt") else None
+        test_acc = test_classification_report["accuracy"] if test_classification_report else 0
+        
+        if optimizer_class_name not in best_per_optimizer:
+            best_per_optimizer[optimizer_class_name] = (Optimizer, params, output, name, cost)
         else:
-            if cost < best_per_optimizer[extract_optimizer_class_name(Optimizer, params)][4]:
-                best_per_optimizer[extract_optimizer_class_name(Optimizer, params)] = (Optimizer, params, output, name, cost)
+            existing_output = best_per_optimizer[optimizer_class_name][2]
+            existing_test_report = get_scores(existing_output + "test_classification_report.txt") if os.path.exists(existing_output + "test_classification_report.txt") else None
+            existing_test_acc = existing_test_report["accuracy"] if existing_test_report else 0
+            
+            if test_acc > existing_test_acc:
+                best_per_optimizer[optimizer_class_name] = (Optimizer, params, output, name, cost)
+                
     print("Best for each Optimizer class:")
     for Optimizer_name, (Optimizer, params, output, name, cost) in best_per_optimizer.items():
         print("-"*30)
         history = json.load(open(output + "history.json"))
         params = {k: v for k, v in params}
         classification_report = get_scores(output + "classification_report.txt")
-        test_classification_report = get_scores(output + "test_classification_report.txt") if os.path.exists(output + "test_classification_report.txt") else None
-        print(f"{Optimizer_name}: {name} with cost {cost:.4f} at {output}")
+        test_classification_report = get_scores(output + "test_classification_report.txt") if os.path.exists(output + "test_classification_report.txt") else {}
+        print(f"{Optimizer_name}: {name} with cost {cost:.4f} and test accuracy {test_classification_report['accuracy']:.4f} at {output}")
         print(f"Parameters: {params}")
-        with open("results/res.json", "r") as f:
-            res = json.load(f)
-            res = {} if res is None else res
-            res[expirement_name] = res.get(expirement_name, {})
-            res[expirement_name][Optimizer_name] = {
-                "name": name,
-                "params": params,
-                "last_cost": cost,
-                "dataset": dataset_name,
-                "number_of_models_params": number_of_models_params,
-                "expirement_name": expirement_name,
-                "output_dir": output,
-                "optimizer": Optimizer_name,
-                "time_to_train": history["time"][-1],
-                "classification_report": classification_report,
-                "test_classification_report": test_classification_report
-            }
-        with open("results/res.json", "w") as f:
-            json.dump(res, f, indent=4 , default=str)
+        try:
+            with open("results/res.json", "r") as f:
+                res = json.load(f)
+                res = {} if res is None else res
+                res[expirement_name] = res.get(expirement_name, {})
+                res[expirement_name][Optimizer_name] = {
+                    "name": name,
+                    "params": params,
+                    "last_cost": cost,
+                    "dataset": dataset_name,
+                    "number_of_models_params": number_of_models_params,
+                    "expirement_name": expirement_name,
+                    "output_dir": output,
+                    "optimizer": Optimizer_name,
+                    "time_to_train": history["time"][-1],
+                    "classification_report": classification_report,
+                    "test_classification_report": test_classification_report
+                }
+            with open("results/res.json", "w") as f:
+                json.dump(res, f, indent=4 , default=str)
+        except Exception as e:
+            print(f"Error saving results to res.json: {e}")
             
     # extract only the best optimizers to D
     D = [ (Optimizer, params, output, name) for Optimizer, params, output, name, cost in best_per_optimizer.values() ]        
@@ -307,7 +409,7 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.tight_layout()
     y_heigth = float('inf')
     m = float('inf')
-    S = 100
+    S = 50
     
     for Optimizer , _ , output,name in D:
         history = json.load(open(output + "history.json"))
@@ -469,7 +571,8 @@ class Pipeline:
         else:
             print(f"History file {history_path} does not exist.")
         
-    def run(self,epochs=100,verbose=False):        
+    def run(self,epochs=100,verbose=False):
+        print(f"Running pipeline, output dir: {self.output_dir}")        
         if os.path.exists(self.output_dir):
             print("Output directory already exists. If you want to overwrite it, delete it first.")
             return
@@ -565,7 +668,7 @@ class Pipeline:
             # plt.suptitle('$\\alpha$ values for each layer over iterations')
             plt.xticks(fontsize=14, fontweight='bold')
             plt.yticks(fontsize=14, fontweight='bold')
-            plt.tight_layout()
+            # plt.tight_layout()
             plt.savefig(self.output_dir + 'alpha_values.png')
             plt.close()
             
