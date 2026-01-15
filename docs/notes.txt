@@ -23,9 +23,7 @@ images/happy5g1.png 13
 images/happy5g2.png 14
 images/cifar10mnetg1.png 22
 
-- put images in 
-- Update tabelas to have RMNSprop and maybe text  
-- Run maybe RMSPROP on all 
-- Do k fold cross validation in at least the simple NN  e acrescentar a cor nas tabelas.
-- Write more on Psi
-- Check if table and text are consistent with plot
+- Do k fold cross validation in at least the simple NN e acrescentar a cor nas tabelas.
+- Write more on Psi , add tables , and change graph to be max per x axis 
+- Add Future Work related to psi 
+-  main graph  Psi Do Exp in subtitles
