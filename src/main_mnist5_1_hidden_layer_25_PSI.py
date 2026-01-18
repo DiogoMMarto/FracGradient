@@ -17,7 +17,7 @@ To customize:
 - Adjust `NUM_EPOCHS`, `learning_rate`, `beta`, and other optimizer parameters for experiments.
 - Switch `if False:` → `if True:` to enable parallel training with multiple threads. (line 111)
 """
-from impl.Pipeline import Pipeline, gen_grid_search , end_pipeline_graphs
+from impl.Pipeline import Pipeline, gen_grid_search , end_pipeline_graphs, psi_graphs
 from impl.NN import NeuralNetwork
 from impl.Optimizers import ClassicOptimizer , AdaptiveLearningRateOptimizer , FracOptimizer , FracOptimizer2 , FracAdap , FracOptimizerPsi
 from impl.CostFunctions import BinaryCrossEntropy , L2Regularization
@@ -219,6 +219,7 @@ def main():
         number_of_models_params += previous * after
     
     end_pipeline_graphs(D, BASE_DIR, number_of_models_params, "MNIST","MNIST 5 - 1 hidden layer")
+    psi_graphs(D,BASE_DIR)
     
 if __name__ == "__main__":
     main()    

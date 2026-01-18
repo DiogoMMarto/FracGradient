@@ -3,6 +3,7 @@ from impl.NN import NeuralNetwork
 from sklearn.metrics import classification_report , confusion_matrix
 import matplotlib.pyplot as plt
 import matplotlib
+import pandas as pd
 matplotlib.use('Agg') 
 plt.rcParams.update({
     'font.size': 14,
@@ -38,14 +39,7 @@ def get_scores(file_path):
             }
     return scores
 
-def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirement_name):
-    betas = []
-    costs = []
-    accs = []
-    accs_test = []
-    optimzer_names = []
-    
-    def extract_name(output: str):
+def extract_name(output: str):
         #split by "learning" and take the first part
         if "\\psi" in output:
             # split by word "$\\psi=$" and take the last part
@@ -67,6 +61,13 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
         if "$\\theta$" in output:
             return output.split("$\\theta$")[0].strip()
         return output  
+
+def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirement_name):
+    betas = []
+    costs = []
+    accs = []
+    accs_test = []
+    optimzer_names = []
     
     for Optimizer, params, output, name in D:
         params_path = output + "params.json"
@@ -437,7 +438,79 @@ def end_pipeline_graphs(D, BASE_DIR,number_of_models_params,dataset_name,expirem
     plt.ylim(ymin=m-0.1, ymax=y_heigth+0.1)
     plt.legend()
     plt.savefig(BASE_DIR + "history_time.png")    
-          
+      
+      
+def psi_graphs(D, BASE_DIR):
+    
+    vals = []
+    
+    for Optimizer, params, output, name in D:
+        dir = output.replace(BASE_DIR, "")
+        params_path = os.path.join(BASE_DIR, dir, "params.json")
+        if not os.path.exists(params_path):
+            print(f"Params file {params_path} does not exist, skipping.")
+            continue
+        params = json.load(open(params_path))
+        if "beta" in params and "psi" in params:
+            if not os.path.exists(os.path.join(BASE_DIR, dir, "history.json")):
+                print(f"History file {os.path.join(BASE_DIR, dir, 'history.json')} does not exist, skipping.")
+                continue
+            history = json.load(open(os.path.join(BASE_DIR, dir, "history.json")))
+            classification_report = get_scores(os.path.join(BASE_DIR, dir, "classification_report.txt"))
+            test_classification_report = get_scores(os.path.join(BASE_DIR, dir, "test_classification_report.txt"))
+            pp = dict(params)
+            n = pp.get("psi")
+            n = float(n.split("_")[-2])
+            vals.append({
+                "final_cost": history["cost"][-1],
+                "beta": params["beta"],
+                "acc": classification_report["accuracy"],
+                "test_acc": test_classification_report["accuracy"],
+                "gamma": n,
+                "name": extract_name(name),
+                "Optimizer": Optimizer,
+            })
+            
+    df = pd.DataFrame(vals)
+     
+    plot_configs = [
+        ("final_cost", "beta", "Loss", "final_cost_vs_beta.png", False),
+        ("acc", "beta", "Accuracy", "acc_vs_beta.png", True),
+        ("test_acc", "beta", "Test Accuracy", "test_acc_vs_beta.png", True),
+        ("final_cost", "gamma", "Loss", "final_cost_vs_gamma.png", False),
+        ("acc", "gamma", "Accuracy", "acc_vs_gamma.png", True),
+        ("test_acc", "gamma", "Test Accuracy", "test_acc_vs_gamma.png", True)
+    ]
+    map_col = {
+        "gamma": "$\\gamma$",
+        "beta": "$\\beta$"
+    }
+     
+    for y_col, x_col, y_label, filename, best_is_max in plot_configs:
+        plt.figure()
+        
+        df_sorted = df.sort_values(y_col, ascending=not best_is_max)
+        df_plot = df_sorted.drop_duplicates(["name", x_col])
+        
+        for label, group in df_plot.groupby("name"):
+            group = group.sort_values(x_col)
+            plt.scatter(group[x_col], group[y_col], marker="o", label=label)
+
+        plt.xlabel(map_col.get(x_col,x_col))
+        plt.ylabel(y_label)
+        plt.legend()
+        plt.tight_layout()
+        if x_col == "gamma":
+            plt.xlim(0,3.1)
+        
+        # Save to the BASE_DIR
+        save_path = os.path.join(BASE_DIR, filename)
+        plt.savefig(save_path)
+        plt.close() # Close plot to free up memory
+        print(f"Saved: {save_path}")
+        print(df_plot)
+    
+    
 def expand_tuple(t):
     elements = [item if isinstance(item, list) else [item] for item in t]
     return list(product(*elements))
