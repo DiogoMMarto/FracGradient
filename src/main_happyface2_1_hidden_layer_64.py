@@ -100,6 +100,8 @@ def main():
         # ( FracOptimizer, {"learning_rate":1,"beta":0.001}, BASE_DIR + "fracB0001/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":10}, BASE_DIR + "fracB10/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracB05/"),
+        ( FracOptimizer2, {"learning_rate":0.1,"beta":1}, BASE_DIR + "frac2B01/", "FracGradient"),
+        ( FracOptimizer, {"learning_rate":0.1,"beta":5}, BASE_DIR + "fracB5/" , "FracGradient V2"),
         ( FracAdap, {"learning_rate":1,"beta":1}, BASE_DIR + "fracAdapB1/" , "FracGradient V2 Adaptive"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "frac3B05/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.05}, BASE_DIR + "frac3B005/"),
@@ -110,18 +112,16 @@ def main():
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0.1}, BASE_DIR + "frac2B01/"),
-        ( FracOptimizer, {"learning_rate":0.1,"beta":5}, BASE_DIR + "fracB5/" , "FracGradient V2"),
         # ( AdamOptimizer, {"learning_rate":1}, BASE_DIR + "adam/"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
-        ( FracOptimizer2, {"learning_rate":0.1,"beta":1}, BASE_DIR + "frac2B01/", "FracGradient"),
         # ( FracOptimizerBStable, {"learning_rate":0.1,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGradient B Stable"),
     ]
     
     D2 = gen_grid_search(
         [
          (FracOptimizer , {"learning_rate":[10,5,2,1,0.1,0.01,0.001],"beta":[5,1,0.5,0.1,0.05,0.01,0.005,0.001]}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
-         (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
          (FracOptimizer , {"learning_rate":[0.1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_v2_/", "FracGradient V2"),
+         (FracAdap , {"learning_rate":[5,2,1],"beta":[5,1,0.5,0.1,0.05,0.01]}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
          (FracAdap , {"learning_rate":[0.1],"beta":list(2**np.arange(-10,3,0.3))}, BASE_DIR + "_frac_adap_v2/", "FracGradient V2 Adaptive"),
         ]
     )

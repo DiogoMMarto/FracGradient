@@ -97,6 +97,8 @@ def main():
         # ( FracOptimizer, {"learning_rate":1,"beta":0.001}, BASE_DIR + "fracB0001/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":10}, BASE_DIR + "fracB10/"),
         # ( FracOptimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "fracB05/"),
+        ( FracOptimizer2, {"learning_rate":0.0001,"beta":0.04}, BASE_DIR + "frac2B05_2/", "FracGradient"),
+        ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGrad LV"),
         ( FracAdap, {"learning_rate":0.01,"beta":0.01}, BASE_DIR + "fracAdapB001/" , "FracGrad LV Adaptive"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.5}, BASE_DIR + "frac3B05/"),
         # ( Frac3Optimizer, {"learning_rate":1,"beta":0.05}, BASE_DIR + "frac3B005/"),
@@ -107,7 +109,6 @@ def main():
         # ( Frac3Adap, {"learning_rate":0.001,"beta":50}, BASE_DIR + "frac3A_B50/", "Fractional Gradient Descent V3 Adaptive Learning Rate"),
         # ( FracOptimizer2, {"learning_rate":1}, BASE_DIR + "frac2/"),
         # ( FracOptimizer2, {"learning_rate":1,"beta":0}, BASE_DIR + "frac2B0/"),
-        ( FracOptimizer, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracB01/" , "FracGrad LV"),
         # ( AdamOptimizer, {"learning_rate":0.001}, BASE_DIR + "adam/", "Adam Optimizer"),
         # ( FracTrue, {"beta":0.5,"verbose":True}, BASE_DIR + "fracTrue/"),
         # ( FracOptimizerBStable, {"learning_rate":0.0005,"beta":0.05}, BASE_DIR + "fracBStable001_/", "FracGrad B Stable"),
@@ -126,7 +127,6 @@ def main():
     )
     
     D.extend(D2)
-    D.append(( FracOptimizer2, {"learning_rate":0.0001,"beta":0.04}, BASE_DIR + "frac2B05_2/", "FracGradient"))
     
     def run_pipeline(Optimizer,params,output):
         p = p_gen(Optimizer,params,output)
