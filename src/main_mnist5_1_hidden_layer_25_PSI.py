@@ -76,7 +76,7 @@ class psi_gen_sinh:
         return f"sinh_{self.n}_"
     
     def __repr__(self):
-        return f"$sinh({self.n}x) {self.n}$"
+        return f"$sinh({self.n}t) / {self.n}$"
     
     def to_dict(self):
         return {"type": "psi_gen_sinh", "n": self.n}
@@ -86,13 +86,13 @@ class sigmoid_psi:
         self.n = n
 
     def __call__(self, x):
-        return 1 / (1 + np.exp(-x)) - 0.5
+        return ( 2 / (1 + np.exp(-2*x/self.n)) - 1 ) * self.n
     
     def __str__(self):
         return f"sigmoid_{self.n}_"
     
     def __repr__(self):
-        return f"${{sigmoid}}({self.n}x)$"
+        return f"${{sigmoid}}({self.n},t)$"
     
     def to_dict(self):
         return {"type": "sigmoid", "n": self.n}
@@ -108,20 +108,20 @@ class ax_psi:
         return f"ax_{self.n}_"
     
     def __repr__(self):
-        return f"${self.n} x$"
+        return f"${self.n} t$"
     
     def to_dict(self):
         return {"type": "ax", "n": self.n}
     
 class logexp_psi:
     def __init__(self, n):
-        self.n = np.exp(n)
+        self.n = n
 
     def __call__(self, x):
-        return np.log((np.exp(self.n * x) + self.n) / (1 + self.n))
+        return np.log((np.exp(x) + self.n) / (1 + self.n))
     
     def __repr__(self):
-        return f"${{logexp}}({self.n:5.3f}x)$"
+        return f"${{logexp}}({self.n:5.3f},t)$"
     
     def __str__(self):
         return f"logexp_{self.n}_"
@@ -190,15 +190,15 @@ def main():
         #  (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1,1.01,1.1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
         #  (FracOptimizerPsi , {"learning_rate":[1],"beta":list(2**np.arange(-3,-2,0.5)),"psi":[psi_gen_power(n) for n in [1]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[psi_gen_sinh(n) for n in [0.05,0.15,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[sigmoid_psi(n) for n in [0.5,1,1.5,2]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[sigmoid_psi(n) for n in [0.1,0.5,1,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
          (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[ax_psi(n) for n in [0.1,0.5,1.5,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
-         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[logexp_psi(n) for n in [-2,-1,-0.5,-0.1,0,0.1,0.5,1,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
+         (FracOptimizerPsi , {"learning_rate":[0.5],"beta":list(2**np.arange(-6,2.1,0.3)),"psi":[logexp_psi(n) for n in [0.1,0.5,1,2,2.5,3]]}, BASE_DIR + "_frac_psi/", "FracGradient Psi"),
         ]
     )
     
     D.extend(D2)
     
-    if True:
+    if False:
         with ThreadPoolExecutor(max_workers=12) as executor:
             futures = [executor.submit(run_pipeline, Optimizer,params,output) for Optimizer,params,output,_ in D]
             for future in futures:
