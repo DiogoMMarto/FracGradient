@@ -108,7 +108,7 @@ class ax_psi:
         return f"ax_{self.n}_"
     
     def __repr__(self):
-        return f"${self.n} t$"
+        return f"${self.n} x$"
     
     def to_dict(self):
         return {"type": "ax", "n": self.n}
